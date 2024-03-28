@@ -2,12 +2,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Windows.h>
+
 void InverseImage(BYTE* Img, BYTE* Out, int W, int H)
 {
 	int ImgSize = W * H;
 	for (int i = 0; i < ImgSize; i++)
 	{
 		Out[i] = 255 - Img[i];
+	}
+}
+
+// 밝기 조절
+void BrightnessAdj(BYTE* Img, BYTE* Out, int W, int H, int Val)
+{
+	int ImgSize = W * H;
+	for (int i = 0; i < ImgSize; i++)
+	{
+		if (Img[i] + Val > 255) {
+			Out[i] = 255;
+		}
+		else if (Img[i] + Val < 0) {
+			Out[i] = 0;
+		}
+		else Out[i] = Img[i] + Val;
+	}
+}
+
+// Contrast 조절
+void ContrastAdj(BYTE* Img, BYTE* Out, int W, int H, double Val)
+{
+	int ImgSize = W * H;
+	for (int i = 0; i < ImgSize; i++)
+	{
+		if (Img[i] * Val > 255.0) {
+			Out[i] = 255;
+}
+		else Out[i] = (BYTE)(Img[i] * Val);
 	}
 }
 
@@ -29,7 +59,9 @@ void main()
 	fclose(fp);
 
 	// 영상처리
-	InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
+	// InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
+	// BrightnessAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 70);
+	ContrastAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 1.5);
 
 	fp = fopen("output.bmp", "wb");
 	fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
