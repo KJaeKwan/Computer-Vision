@@ -48,6 +48,13 @@ void ObtainHistogram(BYTE* Img, int* Histo, int W, int H) {
 	}
 }
 
+void ObtainAHisto(int* Histo, int* AHisto) {
+	for (int i = 0; i < 255; i++) {
+		for (int j = 0; j <= i; j++) {
+			AHisto[i] += Histo[j];
+		}
+	}
+}
 // 스트레칭
 void HistogramStretching(BYTE* Img, BYTE* Out, int* Histo, int W, int H) {
 	int ImgSize = W * H;
@@ -69,6 +76,20 @@ void HistogramStretching(BYTE* Img, BYTE* Out, int* Histo, int W, int H) {
 	}
 }
 
+// 평탄화
+void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H) {
+	int ImgSize = W * H;
+	int Nt =W * H, Gmax = 255;
+	double Ratio = Gmax / (double)Nt;
+	BYTE NormSum[256];
+	for (int i = 0; i < 256; i++) {
+		NormSum[i] = (BYTE)(Ratio * AHisto[i]);
+	}
+	for (int i = 0; i < ImgSize; i++) {
+		Out[i] = NormSum[Img[i]];
+	}
+}
+
 void main()
 {
 	BITMAPFILEHEADER hf; // 14Bytes
@@ -87,9 +108,14 @@ void main()
 	fclose(fp);
 
 	int Histo[256] = { 0 };
+	int AHisto[255] = { 0 };
 
 	ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
-	HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
+	ObtainAHisto(Histo, AHisto);
+	HistogramEqualization(Image, Output, AHisto, hInfo.biWidth, hInfo.biHeight);
+
+	//HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
+
 
 	// 영상처리
 	// InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
