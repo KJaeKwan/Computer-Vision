@@ -36,8 +36,36 @@ void ContrastAdj(BYTE* Img, BYTE* Out, int W, int H, double Val)
 	{
 		if (Img[i] * Val > 255.0) {
 			Out[i] = 255;
-}
+		}
 		else Out[i] = (BYTE)(Img[i] * Val);
+	}
+}
+
+void ObtainHistogram(BYTE* Img, int* Histo, int W, int H) {
+	int ImgSize = W * H;
+	for (int i = 0; i < ImgSize; i++) {
+		Histo[Img[i]]++;
+	}
+}
+
+// 스트레칭
+void HistogramStretching(BYTE* Img, BYTE* Out, int* Histo, int W, int H) {
+	int ImgSize = W * H;
+	BYTE Low, High;
+	for (int i = 0; i < 256; i++) {
+		if (Histo[i] != 0) {
+			Low = i;
+			break;
+		}
+	}
+	for (int i = 255; i >= 0; i--) {
+		if (Histo[i] != 0) {
+			High = i;
+			break;
+		}
+	}
+	for (int i = 0; i < ImgSize; i++) {
+		Out[i] = (BYTE)((Img[i] - Low) / (double)(High - Low) * 255.0);
 	}
 }
 
@@ -58,10 +86,15 @@ void main()
 	fread(Image, sizeof(BYTE), ImgSize, fp);
 	fclose(fp);
 
+	int Histo[256] = { 0 };
+
+	ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
+	HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
+
 	// 영상처리
 	// InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	// BrightnessAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 70);
-	ContrastAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 1.5);
+	// ContrastAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 1.5);
 
 	fp = fopen("output.bmp", "wb");
 	fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
