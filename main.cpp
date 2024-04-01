@@ -90,6 +90,50 @@ void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H) {
 	}
 }
 
+// 이진화
+void Binarization(BYTE* Img, BYTE* Out, int W, int H, BYTE Threshold) {
+	int ImgSize = W * H;
+	for (int i = 0; i < ImgSize; i++) {
+		if (Img[i] < Threshold) Out[i] = 0;
+		else Out[i] = 255;
+	}
+}
+
+// Gonzalez 자동 이진화 알고리즘
+int GonzalezBinThresh(int* Histo) {
+	int Min = 255, Max = 0;
+	for (int i = 0; i < 256; i++) {
+		if (Histo[i] != 0) {
+			Min = (i < Min) ? i : Min;
+			Max = (i > Max) ? i : Max;
+		}
+	}
+	int T = (Min + Max) / 2;
+	int Init;
+	// 영상의 최소값, 최대값 구하기
+	do {
+		Init = T;
+		int Sum1 = 0, Sum2 = 0, Cnt1 = 0, Cnt2 = 0;
+		double Avg1, Avg2;
+
+		for (int i = 0; i <= T; i++) {
+			Sum1 += i*Histo[i];
+			Cnt1 += Histo[i];
+		}
+		Avg1 = (double)Sum1 / Cnt1;
+
+		for (int i = T + 1; i < 256; i++) {
+			Sum2 += i*Histo[i];
+			Cnt2 += Histo[i];
+		}
+		Avg2 = (double)Sum2 / Cnt2;
+		//새로운 경계값
+		T = (Avg1 + Avg2) / 2;
+	} while(abs(T-Init) > 3);
+
+	return T;
+}
+
 void main()
 {
 	BITMAPFILEHEADER hf; // 14Bytes
@@ -111,8 +155,10 @@ void main()
 	int AHisto[255] = { 0 };
 
 	ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
-	ObtainAHisto(Histo, AHisto);
-	HistogramEqualization(Image, Output, AHisto, hInfo.biWidth, hInfo.biHeight);
+	// ObtainAHisto(Histo, AHisto);
+	// HistogramEqualization(Image, Output, AHisto, hInfo.biWidth, hInfo.biHeight);
+	int Thres = GonzalezBinThresh(Histo);
+	Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);
 
 	//HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
 
