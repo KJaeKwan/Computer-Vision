@@ -230,6 +230,7 @@ void main()
 	int ImgSize = hInfo.biWidth * hInfo.biHeight;
 	BYTE* Image = (BYTE*)malloc(ImgSize);
 	BYTE* Output = (BYTE*)malloc(ImgSize);
+	BYTE* Temp = (BYTE*)malloc(ImgSize); // 임시배열
 	fread(Image, sizeof(BYTE), ImgSize, fp);
 	fclose(fp);
 
@@ -245,8 +246,12 @@ void main()
 	// AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	// GaussAvgConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	// Prewitt_X_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+	Prewitt_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
 	Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-	// Binarization(Output, Output, hInfo.biWidth, hInfo.biHeight, 80);
+	for (int i = 0; i < ImgSize; i++) {
+		if (Temp[i] > Output[i]) Output[i] = Temp[i];
+	}
+	 Binarization(Output, Output, hInfo.biWidth, hInfo.biHeight, 40);
 
 	// HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
 	// InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
@@ -261,4 +266,5 @@ void main()
 	fclose(fp);
 	free(Image);
 	free(Output);
+	free(Temp);
 }
