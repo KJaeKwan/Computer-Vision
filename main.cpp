@@ -216,6 +216,48 @@ void Prewitt_Y_Conv(BYTE* Img, BYTE* Out, int W, int H) {
 	}
 }
 
+// Sobel 마스크 X
+void Sobel_X_Conv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { -1.0,0 ,1.0,
+							-2.0,0 ,2.0,
+							-1.0,0 ,1.0 };
+	double SumProduct = 0.0;
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
+				}
+			}
+			// 0~1020 ===>> 0~255
+			Out[i * W + j] = abs((long)SumProduct) / 4;
+			SumProduct = 0.0;
+		}
+	}
+}
+
+// Sobel 마스크 Y
+void Sobel_Y_Conv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { -1.0,-2.0,-1.0,
+							0.0,0.0,0.0,
+							1.0,2.0,1.0 };
+	double SumProduct = 0.0;
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
+				}
+			}
+			// 0~1020 ===>> 0~255
+			Out[i * W + j] = abs((long)SumProduct) / 4;
+			SumProduct = 0.0;
+		}
+	}
+}
+
 void main()
 {
 	BITMAPFILEHEADER hf; // 14Bytes
@@ -246,8 +288,10 @@ void main()
 	// AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	// GaussAvgConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	// Prewitt_X_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-	Prewitt_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
-	Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+	// Prewitt_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
+	// Prewitt_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+	Sobel_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
+	Sobel_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	for (int i = 0; i < ImgSize; i++) {
 		if (Temp[i] > Output[i]) Output[i] = Temp[i];
 	}
