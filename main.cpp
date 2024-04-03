@@ -224,6 +224,7 @@ void main()
 	// AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	// GaussAvgConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	Prewitt_X_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+	Binarization(Output, Output, hInfo.biWidth, hInfo.biHeight, 80);
 
 	// HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
 	// InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
