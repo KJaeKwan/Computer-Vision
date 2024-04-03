@@ -341,7 +341,8 @@ void main()
 	// }
 	// Binarization(Output, Output, hInfo.biWidth, hInfo.biHeight, 40);
 	// Laplace_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-	Laplace_Conv_DC(Image, Output, hInfo.biWidth, hInfo.biHeight);
+	GaussAvgConv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
+	Laplace_Conv_DC(Temp, Output, hInfo.biWidth, hInfo.biHeight);
 
 	// HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
 	// InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
