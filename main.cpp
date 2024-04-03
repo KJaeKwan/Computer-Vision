@@ -134,13 +134,33 @@ int GonzalezBinThresh(int* Histo) {
 	return T;
 }
 
+//박스 평활화
+void AverageConv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { 0.11111,0.11111 ,0.11111,
+						    0.11111,0.11111 ,0.11111,
+						    0.11111,0.11111 ,0.11111 };
+	double SumProduct = 0.0;
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) { 
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i+m)*W + (j+n)] * Kennel[m+1][n+1]  ;
+				}
+			}
+			Out[i * W + j] = (BYTE)SumProduct;
+			SumProduct = 0.0;
+		}
+	}
+}
+
 void main()
 {
 	BITMAPFILEHEADER hf; // 14Bytes
 	BITMAPINFOHEADER hInfo; //40Bytes
 	RGBQUAD hRGB[256]; // (256 * 4Bytes)
 	FILE* fp;
-	fp = fopen("coin.bmp", "rb");
+	fp = fopen("lenna.bmp", "rb");
 	if (fp == NULL) return;
 	fread(&hf, sizeof(BITMAPFILEHEADER), 1, fp);
 	fread(&hInfo, sizeof(BITMAPINFOHEADER), 1, fp);
@@ -154,16 +174,16 @@ void main()
 	int Histo[256] = { 0 };
 	int AHisto[255] = { 0 };
 
-	ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
+	// ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
 	// ObtainAHisto(Histo, AHisto);
 	// HistogramEqualization(Image, Output, AHisto, hInfo.biWidth, hInfo.biHeight);
-	int Thres = GonzalezBinThresh(Histo);
-	Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);
+	// int Thres = GonzalezBinThresh(Histo);
+	// Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);
 
-	//HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
+	AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 
 
-	// 영상처리
+	// HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
 	// InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
 	// BrightnessAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 70);
 	// ContrastAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 1.5);
