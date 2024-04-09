@@ -285,10 +285,11 @@ void swap(BYTE* a, BYTE* b)
 
 BYTE Median(BYTE* arr, int size)
 {
+	// 오름차순 정렬
 	const int S = size;
 	for (int i = 0; i < size - 1; i++) // pivot index
 	{
-		for (int j = i + 1; j < size; j++) // �񱳴�� index
+		for (int j = i + 1; j < size; j++) // 비교대상 index
 		{
 			if (arr[i] > arr[j]) 	swap(&arr[i], &arr[j]);
 		}
@@ -296,31 +297,6 @@ BYTE Median(BYTE* arr, int size)
 	return arr[S / 2];
 }
 
-BYTE MaxPooling(BYTE* arr, int size)
-{
-	const int S = size;
-	for (int i = 0; i < size - 1; i++) // pivot index
-	{
-		for (int j = i + 1; j < size; j++) // �񱳴�� index
-		{
-			if (arr[i] > arr[j]) 	swap(&arr[i], &arr[j]);
-		}
-	}
-	return arr[S - 1];
-}
-
-BYTE MinPooling(BYTE* arr, int size)
-{
-	const int S = size;
-	for (int i = 0; i < size - 1; i++) // pivot index
-	{
-		for (int j = i + 1; j < size; j++) // �񱳴�� index
-		{
-			if (arr[i] > arr[j]) 	swap(&arr[i], &arr[j]);
-		}
-	}
-	return arr[0];
-}
 
 int main()
 {
@@ -353,28 +329,26 @@ int main()
 	/* ... */
 
 	/* Median filtering */
-	//BYTE temp[9];
-	//int W = hInfo.biWidth, H = hInfo.biHeight;
-	//int i, j;
-	//for (i = 1; i < H - 1; i++) {
-	//	for (j = 1; j < W - 1; j++) {
-	//		temp[0] = Image[(i - 1) * W + j-1];
-	//		temp[1] = Image[(i - 1) * W + j];
-	//		temp[2] = Image[(i - 1) * W + j+1];
-	//		temp[3] = Image[i * W + j-1];
-	//		temp[4] = Image[i * W + j];
-	//		temp[5] = Image[i * W + j+1];
-	//		temp[6] = Image[(i + 1) * W + j-1];
-	//		temp[7] = Image[(i + 1) * W + j];
-	//		temp[8] = Image[(i + 1) * W + j+1];
-	//		Output[i * W + j] = Median(temp, 9);
-	//		//Output[i * W + j] = MaxPooling(temp, 9);
-	//		//Output[i * W + j] = MinPooling(temp, 9);
-	//	}
-	//}
+	BYTE temp[9];
+	int W = hInfo.biWidth, H = hInfo.biHeight;
+	int i, j;
+	for (i = 1; i < H - 1; i++) {
+		for (j = 1; j < W - 1; j++) {
+			temp[0] = Image[(i - 1) * W + j-1];
+			temp[1] = Image[(i - 1) * W + j];
+			temp[2] = Image[(i - 1) * W + j+1];
+			temp[3] = Image[i * W + j-1];
+			temp[4] = Image[i * W + j];
+			temp[5] = Image[i * W + j+1];
+			temp[6] = Image[(i + 1) * W + j-1];
+			temp[7] = Image[(i + 1) * W + j];
+			temp[8] = Image[(i + 1) * W + j+1];
+			Output[i * W + j] = Median(temp, 9);
+		}
+	}
 	/* Median filtering */
 
-	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_average.bmp");
+	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_median.bmp");
 
 
 	free(Image);
