@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Windows.h>
+
 void InverseImage(BYTE* Img, BYTE* Out, int W, int H)
 {
 	int ImgSize = W * H;
@@ -385,7 +386,7 @@ int main()
 	fread(hRGB, sizeof(RGBQUAD), 256, fp);
 	int ImgSize = hInfo.biWidth * hInfo.biHeight;
 	BYTE* Image = (BYTE*)malloc(ImgSize);
-	BYTE* Temp = (BYTE*)malloc(ImgSize); // �ӽù迭
+	BYTE* Temp = (BYTE*)malloc(ImgSize); 
 	BYTE* Output = (BYTE*)malloc(ImgSize);
 	fread(Image, sizeof(BYTE), ImgSize, fp);
 	fclose(fp);
@@ -400,30 +401,34 @@ int main()
 	/* ... */
 
 	/* Median filtering */
-	//BYTE temp[9];
-	//int W = hInfo.biWidth, H = hInfo.biHeight;
-	//int i, j;
-	//for (i = 1; i < H - 1; i++) {
-	//	for (j = 1; j < W - 1; j++) {
-	//		temp[0] = Image[(i - 1) * W + j-1];
-	//		temp[1] = Image[(i - 1) * W + j];
-	//		temp[2] = Image[(i - 1) * W + j+1];
-	//		temp[3] = Image[i * W + j-1];
-	//		temp[4] = Image[i * W + j];
-	//		temp[5] = Image[i * W + j+1];
-	//		temp[6] = Image[(i + 1) * W + j-1];
-	//		temp[7] = Image[(i + 1) * W + j];
-	//		temp[8] = Image[(i + 1) * W + j+1];
-	//		// Output[i * W + j] = Median(temp, 9);
-	//		// Output[i * W + j] = MaxPooling(temp, 9);
-	//		Output[i * W + j] = MinPooling(temp, 9);
-	//	}
-	//}
+	int Length = 9;  // 마스크의 한 변의 길이
+	int Margin = Length / 2; // 마진 값 두기 (마스크의 길이가 커지면 당연히 커진다)
+	int WSize = Length * Length;  // 마스크의 크기
+
+	BYTE* temp = (BYTE*)malloc(sizeof(BYTE) * WSize); // 임시 변수에 마스크 크기만큼 동적할당
+
+	int W = hInfo.biWidth, H = hInfo.biHeight; // W,H 선언 및 값 할당
+
+	int i, j, m, n; // 반복문에 사용될 변수 선언
+
+	for (i = Margin; i < H - Margin; i++) {
+		for (j = Margin; j < W - Margin; j++) { // i,j로 지정된 center값을 반복문으로 돌림
+			for (m = -Margin; m <= Margin; m++) { 
+				for (n = -Margin; n <= Margin; n++) { // m,n으로 마스크 크기의 가로, 세로만큼 반복문 돌림 
+					// temp 배열에 이미지 값(center를 중심으로 한 값들)을 넣음
+					temp[(m + Margin) * Length + (n + Margin)] = Image[(i + m) * W + j + n];
+				}
+			}
+			Output[i * W + j] = Median(temp, WSize); // center에 median값 넣기
+		}
+	}
+
+	free(temp); // 할당한 temp free처리
 	/* Median filtering */
 
 	AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 
-	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_average.bmp");
+	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "median_9.bmp");
 
 
 	free(Image);
