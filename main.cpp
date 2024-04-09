@@ -285,7 +285,6 @@ void swap(BYTE* a, BYTE* b)
 
 BYTE Median(BYTE* arr, int size)
 {
-	// �������� ����
 	const int S = size;
 	for (int i = 0; i < size - 1; i++) // pivot index
 	{
@@ -299,7 +298,6 @@ BYTE Median(BYTE* arr, int size)
 
 BYTE MaxPooling(BYTE* arr, int size)
 {
-	// �������� ����
 	const int S = size;
 	for (int i = 0; i < size - 1; i++) // pivot index
 	{
@@ -313,7 +311,6 @@ BYTE MaxPooling(BYTE* arr, int size)
 
 BYTE MinPooling(BYTE* arr, int size)
 {
-	// �������� ����
 	const int S = size;
 	for (int i = 0; i < size - 1; i++) // pivot index
 	{
@@ -327,11 +324,11 @@ BYTE MinPooling(BYTE* arr, int size)
 
 int main()
 {
-	BITMAPFILEHEADER hf; // 14����Ʈ
-	BITMAPINFOHEADER hInfo; // 40����Ʈ
-	RGBQUAD hRGB[256]; // 1024����Ʈ
+	BITMAPFILEHEADER hf; 
+	BITMAPINFOHEADER hInfo; 
+	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("lenna_gauss.bmp", "rb");
+	fp = fopen("lenna_impulse.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -349,27 +346,11 @@ int main()
 	int Histo[256] = { 0 };
 	int AHisto[256] = { 0 };
 
-	/*ObtainHistogram(Image, Histo, hInfo.biWidth, hInfo.biHeight);
-	ObtainAHistogram(Histo, AHisto);
-	HistogramEqualization(Image, Output, AHisto, hInfo.biWidth, hInfo.biHeight);*/
-	/*int Thres = GozalezBinThresh();
-	Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, Thres);*/
+	/* ... */
 
 	//GaussAvrConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-
-	/*Sobel_X_Conv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
-	Sobel_Y_Conv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-	for (int i = 0; i < ImgSize; i++) {
-		if (Temp[i] > Output[i]) 	Output[i] = Temp[i];
-	}
-	Binarization(Output, Output, hInfo.biWidth, hInfo.biHeight, 40);*/
-	/*GaussAvrConv(Image, Temp, hInfo.biWidth, hInfo.biHeight);
-	Laplace_Conv_DC(Temp, Output, hInfo.biWidth, hInfo.biHeight);*/
-
-	//HistogramStretching(Image, Output, Histo, hInfo.biWidth, hInfo.biHeight);
-	//InverseImage(Image, Output, hInfo.biWidth, hInfo.biHeight);
-	//BrightnessAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 70);
-	//ContrastAdj(Image, Output, hInfo.biWidth, hInfo.biHeight, 0.5);
+	
+	/* ... */
 
 	/* Median filtering */
 	//BYTE temp[9];
@@ -392,8 +373,6 @@ int main()
 	//	}
 	//}
 	/* Median filtering */
-
-	AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_average.bmp");
 
