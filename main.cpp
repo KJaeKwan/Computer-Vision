@@ -373,8 +373,8 @@ int main()
 			temp[7] = Image[(i + 1) * W + j];
 			temp[8] = Image[(i + 1) * W + j+1];
 			// Output[i * W + j] = Median(temp, 9);
-			Output[i * W + j] = MaxPooling(temp, 9);
-			// Output[i * W + j] = MinPooling(temp, 9);
+			// Output[i * W + j] = MaxPooling(temp, 9);
+			Output[i * W + j] = MinPooling(temp, 9);
 		}
 	}
 	/* Median filtering */
