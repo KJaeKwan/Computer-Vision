@@ -10,6 +10,7 @@ void InverseImage(BYTE* Img, BYTE* Out, int W, int H)
 		Out[i] = 255 - Img[i];
 	}
 }
+// 밝기 조절
 void BrightnessAdj(BYTE* Img, BYTE* Out, int W, int H, int Val)
 {
 	int ImgSize = W * H;
@@ -26,6 +27,7 @@ void BrightnessAdj(BYTE* Img, BYTE* Out, int W, int H, int Val)
 		else 	Out[i] = Img[i] + Val;
 	}
 }
+// Contrast 조절
 void ContrastAdj(BYTE* Img, BYTE* Out, int W, int H, double Val)
 {
 	int ImgSize = W * H;
@@ -55,7 +57,7 @@ void ObtainAHistogram(int* Histo, int* AHisto)
 		}
 	}
 }
-
+// 스트레칭
 void HistogramStretching(BYTE* Img, BYTE* Out, int* Histo, int W, int H)
 {
 	int ImgSize = W * H;
@@ -76,6 +78,7 @@ void HistogramStretching(BYTE* Img, BYTE* Out, int* Histo, int W, int H)
 		Out[i] = (BYTE)((Img[i] - Low) / (double)(High - Low) * 255.0);
 	}
 }
+// 평탄화
 void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H)
 {
 	int ImgSize = W * H;
@@ -90,7 +93,7 @@ void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H)
 		Out[i] = NormSum[Img[i]];
 	}
 }
-
+// 이진화
 void Binarization(BYTE* Img, BYTE* Out, int W, int H, BYTE Threshold)
 {
 	int ImgSize = W * H;
@@ -100,22 +103,53 @@ void Binarization(BYTE* Img, BYTE* Out, int W, int H, BYTE Threshold)
 	}
 }
 
-//int GozalezBinThresh()
-//{
-//
-//}
+// Gonzalez 자동 이진화 알고리즘
+int GonzalezBinThresh(int* Histo) {
+	int Min = 255, Max = 0;
+	for (int i = 0; i < 256; i++) {
+		if (Histo[i] != 0) {
+			Min = (i < Min) ? i : Min;
+			Max = (i > Max) ? i : Max;
+		}
+	}
+	int T = (Min + Max) / 2;
+	int Init;
+	// 영상의 최소값, 최대값 구하기
+	do {
+		Init = T;
+		int Sum1 = 0, Sum2 = 0, Cnt1 = 0, Cnt2 = 0;
+		double Avg1, Avg2;
 
-void AverageConv(BYTE* Img, BYTE* Out, int W, int H) // �ڽ���Ȱȭ
-{
-	double Kernel[3][3] = { 0.11111, 0.11111, 0.11111,
-										0.11111, 0.11111, 0.11111,
-										0.11111, 0.11111, 0.11111 };
+		for (int i = 0; i <= T; i++) {
+			Sum1 += i * Histo[i];
+			Cnt1 += Histo[i];
+		}
+		Avg1 = (double)Sum1 / Cnt1;
+
+		for (int i = T + 1; i < 256; i++) {
+			Sum2 += i * Histo[i];
+			Cnt2 += Histo[i];
+		}
+		Avg2 = (double)Sum2 / Cnt2;
+		//새로운 경계값
+		T = (Avg1 + Avg2) / 2;
+	} while (abs(T - Init) > 3);
+
+	return T;
+}
+
+//박스 평활화
+void AverageConv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { 0.11111,0.11111 ,0.11111,
+							0.11111,0.11111 ,0.11111,
+							0.11111,0.11111 ,0.11111 };
 	double SumProduct = 0.0;
-	for (int i = 1; i < H - 1; i++) { // Y��ǥ (��)
-		for (int j = 1; j < W - 1; j++) { // X��ǥ (��)
-			for (int m = -1; m <= 1; m++) { // Kernel ��
-				for (int n = -1; n <= 1; n++) { // Kernel ��
-					SumProduct += Img[(i + m) * W + (j + n)] * Kernel[m + 1][n + 1];
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
 				}
 			}
 			Out[i * W + j] = (BYTE)SumProduct;
@@ -124,17 +158,18 @@ void AverageConv(BYTE* Img, BYTE* Out, int W, int H) // �ڽ���Ȱȭ
 	}
 }
 
-void GaussAvrConv(BYTE* Img, BYTE* Out, int W, int H) // ����þ���Ȱȭ
-{
-	double Kernel[3][3] = { 0.0625, 0.125, 0.0625,
-										0.125, 0.25, 0.125,
-										0.0625, 0.125, 0.0625 };
+// 가우시안 평활화
+void GaussAvgConv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { 0.0625,0.125 ,0.0625,
+							0.125,0.25 ,0.125,
+							0.0625,0.125 ,0.0625 };
 	double SumProduct = 0.0;
-	for (int i = 1; i < H - 1; i++) { // Y��ǥ (��)
-		for (int j = 1; j < W - 1; j++) { // X��ǥ (��)
-			for (int m = -1; m <= 1; m++) { // Kernel ��
-				for (int n = -1; n <= 1; n++) { // Kernel ��
-					SumProduct += Img[(i + m) * W + (j + n)] * Kernel[m + 1][n + 1];
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
 				}
 			}
 			Out[i * W + j] = (BYTE)SumProduct;
@@ -143,120 +178,126 @@ void GaussAvrConv(BYTE* Img, BYTE* Out, int W, int H) // ����þ���
 	}
 }
 
-void Prewitt_X_Conv(BYTE* Img, BYTE* Out, int W, int H) // Prewitt ����ũ X
-{
-	double Kernel[3][3] = { -1.0, 0.0, 1.0,
-										-1.0, 0.0, 1.0,
-										-1.0, 0.0, 1.0 };
+// Prewitt 마스크 X
+void Prewitt_X_Conv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { -1.0,0 ,1.0,
+							-1.0,0 ,1.0,
+							-1.0,0 ,1.0 };
 	double SumProduct = 0.0;
-	for (int i = 1; i < H - 1; i++) { // Y��ǥ (��)
-		for (int j = 1; j < W - 1; j++) { // X��ǥ (��)
-			for (int m = -1; m <= 1; m++) { // Kernel ��
-				for (int n = -1; n <= 1; n++) { // Kernel ��
-					SumProduct += Img[(i + m) * W + (j + n)] * Kernel[m + 1][n + 1];
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
 				}
 			}
-			// 0 ~ 765  =====> 0 ~ 255
+			// 0~765 ===>> 0~255
 			Out[i * W + j] = abs((long)SumProduct) / 3;
 			SumProduct = 0.0;
 		}
 	}
 }
 
-void Prewitt_Y_Conv(BYTE* Img, BYTE* Out, int W, int H) // Prewitt ����ũ X
-{
-	double Kernel[3][3] = { -1.0, -1.0, -1.0,
-										0.0, 0.0, 0.0,
-										1.0, 1.0, 1.0 };
+// Prewitt 마스크 Y
+void Prewitt_Y_Conv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { -1.0,-1.0,-1.0,
+							0.0,0.0,0.0,
+							1.0,1.0,1.0 };
 	double SumProduct = 0.0;
-	for (int i = 1; i < H - 1; i++) { // Y��ǥ (��)
-		for (int j = 1; j < W - 1; j++) { // X��ǥ (��)
-			for (int m = -1; m <= 1; m++) { // Kernel ��
-				for (int n = -1; n <= 1; n++) { // Kernel ��
-					SumProduct += Img[(i + m) * W + (j + n)] * Kernel[m + 1][n + 1];
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
 				}
 			}
-			// 0 ~ 765  =====> 0 ~ 255
+			// 0~765 ===>> 0~255
 			Out[i * W + j] = abs((long)SumProduct) / 3;
 			SumProduct = 0.0;
 		}
 	}
 }
 
-void Sobel_X_Conv(BYTE* Img, BYTE* Out, int W, int H) // Prewitt ����ũ X
-{
-	double Kernel[3][3] = { -1.0, 0.0, 1.0,
-										-2.0, 0.0, 2.0,
-										-1.0, 0.0, 1.0 };
+// Sobel 마스크 X
+void Sobel_X_Conv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { -1.0,0 ,1.0,
+							-2.0,0 ,2.0,
+							-1.0,0 ,1.0 };
 	double SumProduct = 0.0;
-	for (int i = 1; i < H - 1; i++) { // Y��ǥ (��)
-		for (int j = 1; j < W - 1; j++) { // X��ǥ (��)
-			for (int m = -1; m <= 1; m++) { // Kernel ��
-				for (int n = -1; n <= 1; n++) { // Kernel ��
-					SumProduct += Img[(i + m) * W + (j + n)] * Kernel[m + 1][n + 1];
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
 				}
 			}
-			// 0 ~ 1020  =====> 0 ~ 255
+			// 0~1020 ===>> 0~255
 			Out[i * W + j] = abs((long)SumProduct) / 4;
 			SumProduct = 0.0;
 		}
 	}
 }
 
-void Sobel_Y_Conv(BYTE* Img, BYTE* Out, int W, int H) // Prewitt ����ũ X
-{
-	double Kernel[3][3] = { -1.0, -2.0, -1.0,
-										0.0, 0.0, 0.0,
-										1.0, 2.0, 1.0 };
+// Sobel 마스크 Y
+void Sobel_Y_Conv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { -1.0,-2.0,-1.0,
+							0.0,0.0,0.0,
+							1.0,2.0,1.0 };
 	double SumProduct = 0.0;
-	for (int i = 1; i < H - 1; i++) { // Y��ǥ (��)
-		for (int j = 1; j < W - 1; j++) { // X��ǥ (��)
-			for (int m = -1; m <= 1; m++) { // Kernel ��
-				for (int n = -1; n <= 1; n++) { // Kernel ��
-					SumProduct += Img[(i + m) * W + (j + n)] * Kernel[m + 1][n + 1];
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
 				}
 			}
-			// 0 ~ 765  =====> 0 ~ 255
+			// 0~1020 ===>> 0~255
 			Out[i * W + j] = abs((long)SumProduct) / 4;
 			SumProduct = 0.0;
 		}
 	}
 }
 
-void Laplace_Conv(BYTE* Img, BYTE* Out, int W, int H) // Prewitt ����ũ X
-{
-	double Kernel[3][3] = { -1.0, -1.0, -1.0,
-										-1.0, 8.0, -1.0,
-										-1.0, -1.0, -1.0 };
+// 라플라시안
+void Laplace_Conv(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { -1.0,-1.0,-1.0,
+							-1.0,8.0,-1.0,
+							-1.0,-1.0,-1.0 };
 	double SumProduct = 0.0;
-	for (int i = 1; i < H - 1; i++) { // Y��ǥ (��)
-		for (int j = 1; j < W - 1; j++) { // X��ǥ (��)
-			for (int m = -1; m <= 1; m++) { // Kernel ��
-				for (int n = -1; n <= 1; n++) { // Kernel ��
-					SumProduct += Img[(i + m) * W + (j + n)] * Kernel[m + 1][n + 1];
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
 				}
 			}
-			// 0 ~ 2040  =====> 0 ~ 255
+			// 0~2040 ===>> 0~255
 			Out[i * W + j] = abs((long)SumProduct) / 8;
 			SumProduct = 0.0;
 		}
 	}
 }
 
-void Laplace_Conv_DC(BYTE* Img, BYTE* Out, int W, int H) // Prewitt ����ũ X
-{
-	double Kernel[3][3] = { -1.0, -1.0, -1.0,
-										-1.0, 9.0, -1.0,
-										-1.0, -1.0, -1.0 };
+// 라플라시안이 노이즈에 얼마나 민감한지 확인
+void Laplace_Conv_DC(BYTE* Img, BYTE* Out, int W, int H) {
+	double Kennel[3][3] = { -1.0,-1.0,-1.0,
+							-1.0,9.0,-1.0,
+							-1.0,-1.0,-1.0 };
 	double SumProduct = 0.0;
-	for (int i = 1; i < H - 1; i++) { // Y��ǥ (��)
-		for (int j = 1; j < W - 1; j++) { // X��ǥ (��)
-			for (int m = -1; m <= 1; m++) { // Kernel ��
-				for (int n = -1; n <= 1; n++) { // Kernel ��
-					SumProduct += Img[(i + m) * W + (j + n)] * Kernel[m + 1][n + 1];
+	// margin을 두기 위해 1부터 시작해서 W(H) -1 전에 종료
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) { // 여기까지 center 화소를 나타냄
+			for (int m = -1; m <= 1; m++) {
+				for (int n = -1; n <= 1; n++) { // center 화소의 주변부를 계산하기 위한 for문 2개
+					SumProduct += Img[(i + m) * W + (j + n)] * Kennel[m + 1][n + 1];
 				}
 			}
-			//Out[i * W + j] = abs((long)SumProduct) / 8;
+
 			if (SumProduct > 255.0) Out[i * W + j] = 255;
 			else if (SumProduct < 0.0) Out[i * W + j] = 0;
 			else Out[i * W + j] = (BYTE)SumProduct;
@@ -264,6 +305,7 @@ void Laplace_Conv_DC(BYTE* Img, BYTE* Out, int W, int H) // Prewitt ����
 		}
 	}
 }
+
 
 void SaveBMPFile(BITMAPFILEHEADER hf, BITMAPINFOHEADER hInfo,
 	RGBQUAD* hRGB, BYTE* Output, int W, int H, const char* FileName)
