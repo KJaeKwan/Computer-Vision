@@ -283,6 +283,7 @@ void swap(BYTE* a, BYTE* b)
 	*b = temp;
 }
 
+// 중앙값 구하는 함수
 BYTE Median(BYTE* arr, int size)
 {
 	// 오름차순 정렬
@@ -295,6 +296,34 @@ BYTE Median(BYTE* arr, int size)
 		}
 	}
 	return arr[S / 2];
+}
+
+BYTE MaxPooling(BYTE* arr, int size)
+{
+	// 오름차순 정렬
+	const int S = size;
+	for (int i = 0; i < size - 1; i++) // pivot index
+	{
+		for (int j = i + 1; j < size; j++) // 비교대상 index
+		{
+			if (arr[i] > arr[j]) 	swap(&arr[i], &arr[j]);
+		}
+	}
+	return arr[S - 1];
+}
+
+BYTE MinPooling(BYTE* arr, int size)
+{
+	// 오름차순 정렬
+	const int S = size;
+	for (int i = 0; i < size - 1; i++) // pivot index
+	{
+		for (int j = i + 1; j < size; j++) // 비교대상 index
+		{
+			if (arr[i] > arr[j]) 	swap(&arr[i], &arr[j]);
+		}
+	}
+	return arr[0];
 }
 
 
@@ -343,7 +372,9 @@ int main()
 			temp[6] = Image[(i + 1) * W + j-1];
 			temp[7] = Image[(i + 1) * W + j];
 			temp[8] = Image[(i + 1) * W + j+1];
-			Output[i * W + j] = Median(temp, 9);
+			// Output[i * W + j] = Median(temp, 9);
+			Output[i * W + j] = MaxPooling(temp, 9);
+			// Output[i * W + j] = MinPooling(temp, 9);
 		}
 	}
 	/* Median filtering */
