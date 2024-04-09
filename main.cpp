@@ -333,7 +333,7 @@ int main()
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("lenna_impulse.bmp", "rb");
+	fp = fopen("lenna_gauss.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -358,28 +358,30 @@ int main()
 	/* ... */
 
 	/* Median filtering */
-	BYTE temp[9];
-	int W = hInfo.biWidth, H = hInfo.biHeight;
-	int i, j;
-	for (i = 1; i < H - 1; i++) {
-		for (j = 1; j < W - 1; j++) {
-			temp[0] = Image[(i - 1) * W + j-1];
-			temp[1] = Image[(i - 1) * W + j];
-			temp[2] = Image[(i - 1) * W + j+1];
-			temp[3] = Image[i * W + j-1];
-			temp[4] = Image[i * W + j];
-			temp[5] = Image[i * W + j+1];
-			temp[6] = Image[(i + 1) * W + j-1];
-			temp[7] = Image[(i + 1) * W + j];
-			temp[8] = Image[(i + 1) * W + j+1];
-			// Output[i * W + j] = Median(temp, 9);
-			// Output[i * W + j] = MaxPooling(temp, 9);
-			Output[i * W + j] = MinPooling(temp, 9);
-		}
-	}
+	//BYTE temp[9];
+	//int W = hInfo.biWidth, H = hInfo.biHeight;
+	//int i, j;
+	//for (i = 1; i < H - 1; i++) {
+	//	for (j = 1; j < W - 1; j++) {
+	//		temp[0] = Image[(i - 1) * W + j-1];
+	//		temp[1] = Image[(i - 1) * W + j];
+	//		temp[2] = Image[(i - 1) * W + j+1];
+	//		temp[3] = Image[i * W + j-1];
+	//		temp[4] = Image[i * W + j];
+	//		temp[5] = Image[i * W + j+1];
+	//		temp[6] = Image[(i + 1) * W + j-1];
+	//		temp[7] = Image[(i + 1) * W + j];
+	//		temp[8] = Image[(i + 1) * W + j+1];
+	//		// Output[i * W + j] = Median(temp, 9);
+	//		// Output[i * W + j] = MaxPooling(temp, 9);
+	//		Output[i * W + j] = MinPooling(temp, 9);
+	//	}
+	//}
 	/* Median filtering */
 
-	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_median.bmp");
+	AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+
+	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_average.bmp");
 
 
 	free(Image);
