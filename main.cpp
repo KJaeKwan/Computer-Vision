@@ -11,6 +11,7 @@ void InverseImage(BYTE* Img, BYTE* Out, int W, int H)
 		Out[i] = 255 - Img[i];
 	}
 }
+
 // 밝기 조절
 void BrightnessAdj(BYTE* Img, BYTE* Out, int W, int H, int Val)
 {
@@ -28,6 +29,7 @@ void BrightnessAdj(BYTE* Img, BYTE* Out, int W, int H, int Val)
 		else 	Out[i] = Img[i] + Val;
 	}
 }
+
 // Contrast 조절
 void ContrastAdj(BYTE* Img, BYTE* Out, int W, int H, double Val)
 {
@@ -58,6 +60,7 @@ void ObtainAHistogram(int* Histo, int* AHisto)
 		}
 	}
 }
+
 // 스트레칭
 void HistogramStretching(BYTE* Img, BYTE* Out, int* Histo, int W, int H)
 {
@@ -79,6 +82,7 @@ void HistogramStretching(BYTE* Img, BYTE* Out, int* Histo, int W, int H)
 		Out[i] = (BYTE)((Img[i] - Low) / (double)(High - Low) * 255.0);
 	}
 }
+
 // 평탄화
 void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H)
 {
@@ -94,6 +98,7 @@ void HistogramEqualization(BYTE* Img, BYTE* Out, int* AHisto, int W, int H)
 		Out[i] = NormSum[Img[i]];
 	}
 }
+
 // 이진화
 void Binarization(BYTE* Img, BYTE* Out, int W, int H, BYTE Threshold)
 {
@@ -139,7 +144,7 @@ int GonzalezBinThresh(int* Histo) {
 	return T;
 }
 
-//박스 평활화
+// 박스 평활화
 void AverageConv(BYTE* Img, BYTE* Out, int W, int H) {
 	double Kennel[3][3] = { 0.11111,0.11111 ,0.11111,
 							0.11111,0.11111 ,0.11111,
@@ -307,7 +312,6 @@ void Laplace_Conv_DC(BYTE* Img, BYTE* Out, int W, int H) {
 	}
 }
 
-
 void SaveBMPFile(BITMAPFILEHEADER hf, BITMAPINFOHEADER hInfo,
 	RGBQUAD* hRGB, BYTE* Output, int W, int H, const char* FileName)
 {
@@ -376,7 +380,7 @@ int main()
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("lenna_gauss.bmp", "rb");
+	fp = fopen("lenna_impulse.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -401,7 +405,7 @@ int main()
 	/* ... */
 
 	/* Median filtering */
-	int Length = 9;  // 마스크의 한 변의 길이
+	int Length = 5;  // 마스크의 한 변의 길이
 	int Margin = Length / 2; // 마진 값 두기 (마스크의 길이가 커지면 당연히 커진다)
 	int WSize = Length * Length;  // 마스크의 크기
 
@@ -428,7 +432,7 @@ int main()
 
 	AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
 
-	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "median_9.bmp");
+	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "median_5.bmp");
 
 
 	free(Image);
