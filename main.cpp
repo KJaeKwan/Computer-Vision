@@ -458,9 +458,9 @@ void m_BlobColoring(BYTE* CutImage, int height, int width)
 	// coloring에 저장된 라벨링 결과중 (Out_Area에 저장된) 영역이 가장 큰 것
 	for (k = 0; k < width * height; k++)
 	{
-		//if (coloring[k] == Out_Area) CutImage[k] = 0;  // 가장 큰 것만 저장
+		if (coloring[k] == Out_Area) CutImage[k] = 0;  // 가장 큰 것만 저장 (size filtering)
 		//if (BlobArea[coloring[k]] > 500) CutImage[k] = 0; 
-		CutImage[k] = (unsigned char)(coloring[k] * grayGap);
+		//CutImage[k] = (unsigned char)(coloring[k] * grayGap);
 	}
 
 	delete[] coloring;
