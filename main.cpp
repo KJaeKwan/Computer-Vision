@@ -373,6 +373,100 @@ BYTE MinPooling(BYTE* arr, int size)
 	return arr[0];
 }
 
+int push(short* stackx, short* stacky, int arr_size, short vx, short vy, int* top)
+{
+	if (*top >= arr_size) return(-1);
+	(*top)++;
+	stackx[*top] = vx;
+	stacky[*top] = vy;
+	return(1);
+}
+
+int pop(short* stackx, short* stacky, short* vx, short* vy, int* top)
+{
+	if (*top == 0) return(-1);
+	*vx = stackx[*top];
+	*vy = stacky[*top];
+	(*top)--;
+	return(1);
+}
+
+
+// GlassFire 알고리즘을 이용한 라벨링 함수
+void m_BlobColoring(BYTE* CutImage, int height, int width)
+{
+	int i, j, m, n, top, area, Out_Area, index, BlobArea[1000];
+	long k;
+	short curColor = 0, r, c;
+	//	BYTE** CutImage2;
+	Out_Area = 1;
+
+	// 스택으로 사용할 메모리 할당
+	short* stackx = new short[height * width];
+	short* stacky = new short[height * width];
+	short* coloring = new short[height * width];
+
+	int arr_size = height * width;
+
+
+	for (k = 0; k < height * width; k++) coloring[k] = 0;  
+
+	for (i = 0; i < height; i++)
+	{
+		index = i * width;
+		for (j = 0; j < width; j++)
+		{
+			if (coloring[index + j] != 0 || CutImage[index + j] != 255) continue;
+			r = i; c = j; top = 0; area = 1;
+			curColor++;
+
+			while (1)
+			{
+			GRASSFIRE:
+				for (m = r - 1; m <= r + 1; m++)
+				{
+					index = m * width;
+					for (n = c - 1; n <= c + 1; n++)
+					{
+						if (m < 0 || m >= height || n < 0 || n >= width) continue;
+
+						if ((int)CutImage[index + n] == 255 && coloring[index + n] == 0)
+						{
+							coloring[index + n] = curColor; 
+							if (push(stackx, stacky, arr_size, (short)m, (short)n, &top) == -1) continue;
+							r = m; c = n; area++;
+							goto GRASSFIRE;
+						}
+					}
+				}
+				if (pop(stackx, stacky, &r, &c, &top) == -1) break;
+			}
+			if (curColor < 1000) BlobArea[curColor] = area;
+		}
+	}
+
+	float grayGap = 255.0f / (float)curColor;
+
+	// 가장 면적이 넓은 영역을 찾아내기 위함
+	for (i = 1; i <= curColor; i++)
+	{
+		if (BlobArea[i] >= BlobArea[Out_Area]) Out_Area = i;
+	}
+	// CutImage 배열 클리어
+	for (k = 0; k < width * height; k++) CutImage[k] = 255;
+
+	// coloring에 저장된 라벨링 결과중 (Out_Area에 저장된) 영역이 가장 큰 것
+	for (k = 0; k < width * height; k++)
+	{
+		if (coloring[k] == Out_Area) CutImage[k] = 0;  // 가장 큰 것만 저장
+		//if (BlobArea[coloring[k]] > 500) CutImage[k] = 0; 
+		//CutImage[k] = (unsigned char)(coloring[k] * grayGap);
+	}
+
+	delete[] coloring;
+	delete[] stackx;
+	delete[] stacky;
+}
 
 int main()
 {
@@ -380,7 +474,7 @@ int main()
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("lenna_impulse.bmp", "rb");
+	fp = fopen("coin.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -405,34 +499,29 @@ int main()
 	/* ... */
 
 	/* Median filtering */
-	int Length = 5;  // 마스크의 한 변의 길이
-	int Margin = Length / 2; // 마진 값 두기 (마스크의 길이가 커지면 당연히 커진다)
-	int WSize = Length * Length;  // 마스크의 크기
-
-	BYTE* temp = (BYTE*)malloc(sizeof(BYTE) * WSize); // 임시 변수에 마스크 크기만큼 동적할당
-
-	int W = hInfo.biWidth, H = hInfo.biHeight; // W,H 선언 및 값 할당
-
-	int i, j, m, n; // 반복문에 사용될 변수 선언
-
-	for (i = Margin; i < H - Margin; i++) {
-		for (j = Margin; j < W - Margin; j++) { // i,j로 지정된 center값을 반복문으로 돌림
-			for (m = -Margin; m <= Margin; m++) { 
-				for (n = -Margin; n <= Margin; n++) { // m,n으로 마스크 크기의 가로, 세로만큼 반복문 돌림 
-					// temp 배열에 이미지 값(center를 중심으로 한 값들)을 넣음
-					temp[(m + Margin) * Length + (n + Margin)] = Image[(i + m) * W + j + n];
-				}
-			}
-			Output[i * W + j] = Median(temp, WSize); // center에 median값 넣기
-		}
-	}
-
-	free(temp); // 할당한 temp free처리
+	//int Length = 5;  // 마스크의 한 변의 길이
+	//int Margin = Length / 2; // 마진 값 두기 (마스크의 길이가 커지면 당연히 커진다)
+	//int WSize = Length * Length;  // 마스크의 크기
+	//BYTE* temp = (BYTE*)malloc(sizeof(BYTE) * WSize); // 임시 변수에 마스크 크기만큼 동적할당
+	//int W = hInfo.biWidth, H = hInfo.biHeight; // W,H 선언 및 값 할당
+	//int i, j, m, n; // 반복문에 사용될 변수 선언
+	//for (i = Margin; i < H - Margin; i++) {
+	//	for (j = Margin; j < W - Margin; j++) { // i,j로 지정된 center값을 반복문으로 돌림
+	//		for (m = -Margin; m <= Margin; m++) { 
+	//			for (n = -Margin; n <= Margin; n++) { // m,n으로 마스크 크기의 가로, 세로만큼 반복문 돌림 
+	//				// temp 배열에 이미지 값(center를 중심으로 한 값들)을 넣음
+	//				temp[(m + Margin) * Length + (n + Margin)] = Image[(i + m) * W + j + n];
+	//			}
+	//		}
+	//		Output[i * W + j] = Median(temp, WSize); // center에 median값 넣기
+	//	}
+	//}
+	//free(temp); // 할당한 temp free처리
 	/* Median filtering */
 
-	AverageConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
+	Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, 100);
 
-	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "median_5.bmp");
+	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_bin.bmp");
 
 
 	free(Image);
