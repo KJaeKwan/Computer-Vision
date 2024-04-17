@@ -468,6 +468,19 @@ void m_BlobColoring(BYTE* CutImage, int height, int width)
 	delete[] stacky;
 }
 
+void BinaryImageEdgeDetection(BYTE* Bin, BYTE* Out, int W, int H) {
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (Bin[i * W + j] == 0) // 전경화소라면
+			{
+				if (!(Bin[(i - 1) * W + j] == 0 && Bin[(i + 1) * W + j] == 0 &&
+					Bin[i * W + j - 1] == 0 && Bin[i * W + j + 1] == 0)) // 4방향 화소 중 하나라도 전경화소가 아니라면
+					Out[i * W + j] = 255;
+			}
+		}
+	}
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
@@ -489,6 +502,7 @@ int main()
 	fread(Image, sizeof(BYTE), ImgSize, fp);
 	fclose(fp);
 
+	int H = hInfo.biHeight, W = hInfo.biWidth;
 	int Histo[256] = { 0 };
 	int AHisto[256] = { 0 };
 
@@ -519,23 +533,13 @@ int main()
 	//free(temp); // 할당한 temp free처리
 	/* Median filtering */
 
-	Binarization(Image, Temp, hInfo.biWidth, hInfo.biHeight, 100);
-	m_BlobColoring(Temp, hInfo.biHeight, hInfo.biWidth);
+	Binarization(Image, Temp, W, H, 100);
+	m_BlobColoring(Temp,H, W);
 	for (int i = 0; i < ImgSize; i++) Output[i] = Image[i];
+	BinaryImageEdgeDetection(Temp, Output, W, H);
 
-	int H = hInfo.biHeight, W = hInfo.biWidth;
-	for (int i = 0; i < H; i++) {
-		for (int j = 0; j < W; j++) {
-			if (Temp[i *W + j] == 0) // 전경화소라면
-			{
-				if (!(Temp[(i - 1) * W + j] == 0 && Temp[(i + 1) * W + j] == 0 &&
-					Temp[i * W + j - 1] == 0 && Temp[i * W + j + 1] == 0)) // 4방향 화소 중 하나라도 전경화소가 아니라면
-					Output[i * W + j] = 255;
-			}
-		}
-	}
 
-	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_bin.bmp");
+	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output_bin_edge.bmp");
 
 
 	free(Image);
