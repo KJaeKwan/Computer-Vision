@@ -459,7 +459,7 @@ void m_BlobColoring(BYTE* CutImage, int height, int width)
 	for (k = 0; k < width * height; k++)
 	{
 		if (coloring[k] == Out_Area) CutImage[k] = 0;  // 가장 큰 것만 저장 (size filtering)
-		//if (BlobArea[coloring[k]] > 500) CutImage[k] = 0; 
+		//if (BlobArea[coloring[k]] > 500) CutImage[k] = 0;  // 특정 면적이상되는 영역만 출력
 		//CutImage[k] = (unsigned char)(coloring[k] * grayGap);
 	}
 
@@ -519,8 +519,21 @@ int main()
 	//free(temp); // 할당한 temp free처리
 	/* Median filtering */
 
-	Binarization(Image, Output, hInfo.biWidth, hInfo.biHeight, 100);
-	m_BlobColoring(Output, hInfo.biHeight, hInfo.biWidth);
+	Binarization(Image, Temp, hInfo.biWidth, hInfo.biHeight, 100);
+	m_BlobColoring(Temp, hInfo.biHeight, hInfo.biWidth);
+	for (int i = 0; i < ImgSize; i++) Output[i] = Image[i];
+
+	int H = hInfo.biHeight, W = hInfo.biWidth;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (Temp[i *W + j] == 0) // 전경화소라면
+			{
+				if (!(Temp[(i - 1) * W + j] == 0 && Temp[(i + 1) * W + j] == 0 &&
+					Temp[i * W + j - 1] == 0 && Temp[i * W + j + 1] == 0)) // 4방향 화소 중 하나라도 전경화소가 아니라면
+					Output[i * W + j] = 255;
+			}
+		}
+	}
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, hInfo.biWidth, hInfo.biHeight, "output_bin.bmp");
 
