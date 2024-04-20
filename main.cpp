@@ -391,7 +391,6 @@ int pop(short* stackx, short* stacky, short* vx, short* vy, int* top)
 	return(1);
 }
 
-
 // GlassFire 알고리즘을 이용한 라벨링 함수
 void m_BlobColoring(BYTE* CutImage, int height, int width)
 {
@@ -468,6 +467,7 @@ void m_BlobColoring(BYTE* CutImage, int height, int width)
 	delete[] stacky;
 }
 
+// 이진화 이미지를 경계검출하는 함수
 void BinaryImageEdgeDetection(BYTE* Bin, BYTE* Out, int W, int H) {
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
@@ -481,13 +481,37 @@ void BinaryImageEdgeDetection(BYTE* Bin, BYTE* Out, int W, int H) {
 	}
 }
 
+// Img: 사각형을 그릴 이미지배열, W: 영상 가로사이즈, H: 영상 세로사이즈,
+// LU_X: 사각형의 좌측상단 X좌표, LU_Y: 사각형의 좌측상단 Y좌표,
+// RD_X: 사각형의 우측하단 X좌표, LU_Y: 사각형의 우측하단 Y좌표.
+void DrawRectOutline(BYTE* Img, int W, int H, int LU_X, int LU_Y, int RD_X, int RD_Y) {
+	for (int i = LU_X; i < RD_X; i++) Img[LU_Y * W + i] = 255;
+	for (int i = LU_X; i < RD_X; i++) Img[RD_Y * W + i] = 255;
+	for (int i = LU_Y; i < RD_Y; i++) Img[i * W + LU_X] = 255;
+	for (int i = LU_Y; i < RD_Y; i++) Img[i * W + RD_X] = 255;
+	
+}
+
+
+// Img: 가로/세로 라인을 그릴 이미지배열, W: 영상 가로사이즈, H: 영상 세로사이즈,
+// Cx: 가로/세로 라인이 교차되는 지점의 X좌표
+// Cy: 가로/세로 라인이 교차되는 지점의 Y좌표
+void DrawCrossLine(BYTE* Img, int W, int H, int Cx, int Cy) {
+	for (int i = 0; i < W - 1; i++) { // horizontal line
+		Img[Cy * W + i] = 255;
+	}
+	for (int i = 0; i < H - 1; i++) { // vertical line
+		Img[i * W + Cx] = 255;
+	}
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("coin.bmp", "rb");
+	fp = fopen("pupil1.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -533,13 +557,82 @@ int main()
 	//free(temp); // 할당한 temp free처리
 	/* Median filtering */
 
-	Binarization(Image, Temp, W, H, 100);
-	m_BlobColoring(Temp,H, W);
-	for (int i = 0; i < ImgSize; i++) Output[i] = Image[i];
-	BinaryImageEdgeDetection(Temp, Output, W, H);
+	Binarization(Image, Output, W, H, 30);
+	InverseImage(Output, Output, W, H);
+	m_BlobColoring(Output, H, W);
+
+	int SumX = 0, SumY = 0;
+	int cnt = 0;
+	int Cx, Cy;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (Output[i * W + j] == 0) // 동공영역이면
+			{
+				SumX += j;
+				SumY += i;
+				cnt++;
+			}
+		}
+	}
+	if (cnt == 0) cnt = 1;
+	Cx = SumX / cnt;
+	Cy = SumY / cnt;
+	//printf("%d %d\n", Cx, Cy);
+
+	int LUX, LUY, RDX, RDY;
+	int flag = 0;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (Output[i * W + j] == 0) {
+				LUY = i;
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 1) break;
+	}
+
+	flag = 0;
+	for (int i = H - 1; i >= 0; i--) {
+		for (int j = 0; j < W; j++) {
+			if (Output[i * W + j] == 0) {
+				RDY = i;
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 1) break;
+	}
+
+	flag = 0;
+	for (int j = 0; j < W; j++) {
+		for (int i = 0; i < H; i++) {
+			if (Output[i * W + j] == 0) {
+				LUX = j;
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 1) break;
+	}
+
+	flag = 0;
+	for (int j = W-1; j >= 0; j--) {
+		for (int i = 0; i < H; i++) {
+			if (Output[i * W + j] == 0) {
+				RDX = j;
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 1) break;
+	}
+	printf("%d %d  %d %d\n", LUX, LUY, RDX, RDY);
+	DrawCrossLine(Image, W, H, Cx, Cy);
+	DrawRectOutline(Image, W, H, LUX, LUY, RDX, RDY);
 
 
-	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output_bin_edge.bmp");
+	SaveBMPFile(hf, hInfo, hRGB, Image, W, H, "output.bmp");
 
 
 	free(Image);
