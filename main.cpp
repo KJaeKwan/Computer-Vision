@@ -504,7 +504,75 @@ void DrawCrossLine(BYTE* Img, int W, int H, int Cx, int Cy) {
 		Img[i * W + Cx] = 255;
 	}
 }
+// 무게중심 구하는 함수
+void Obtain2DCenter(BYTE* Image, int W, int H, int* Cx, int* Cy) {
+	int SumX = 0, SumY = 0;
+	int cnt = 0;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (Image[i * W + j] == 0) // 동공영역이면
+			{
+				SumX += j;
+				SumY += i;
+				cnt++;
+			}
+		}
+	}
+	if (cnt == 0) cnt = 1;
+	*Cx = SumX / cnt;
+	*Cy = SumY / cnt;
+	//printf("%d %d\n", Cx, Cy);
+}
 
+void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX, int* RDY) {
+	int flag = 0;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (Image[i * W + j] == 0) {
+				*LUY = i;
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 1) break;
+	}
+
+	flag = 0;
+	for (int i = H - 1; i >= 0; i--) {
+		for (int j = 0; j < W; j++) {
+			if (Image[i * W + j] == 0) {
+				*RDY = i;
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 1) break;
+	}
+
+	flag = 0;
+	for (int j = 0; j < W; j++) {
+		for (int i = 0; i < H; i++) {
+			if (Image[i * W + j] == 0) {
+				*LUX = j;
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 1) break;
+	}
+
+	flag = 0;
+	for (int j = W - 1; j >= 0; j--) {
+		for (int i = 0; i < H; i++) {
+			if (Image[i * W + j] == 0) {
+				*RDX = j;
+				flag = 1;
+				break;
+			}
+		}
+		if (flag == 1) break;
+	}
+}
 int main()
 {
 	BITMAPFILEHEADER hf; 
@@ -560,74 +628,11 @@ int main()
 	Binarization(Image, Output, W, H, 30);
 	InverseImage(Output, Output, W, H);
 	m_BlobColoring(Output, H, W);
-
-	int SumX = 0, SumY = 0;
-	int cnt = 0;
 	int Cx, Cy;
-	for (int i = 0; i < H; i++) {
-		for (int j = 0; j < W; j++) {
-			if (Output[i * W + j] == 0) // 동공영역이면
-			{
-				SumX += j;
-				SumY += i;
-				cnt++;
-			}
-		}
-	}
-	if (cnt == 0) cnt = 1;
-	Cx = SumX / cnt;
-	Cy = SumY / cnt;
-	//printf("%d %d\n", Cx, Cy);
-
 	int LUX, LUY, RDX, RDY;
-	int flag = 0;
-	for (int i = 0; i < H; i++) {
-		for (int j = 0; j < W; j++) {
-			if (Output[i * W + j] == 0) {
-				LUY = i;
-				flag = 1;
-				break;
-			}
-		}
-		if (flag == 1) break;
-	}
-
-	flag = 0;
-	for (int i = H - 1; i >= 0; i--) {
-		for (int j = 0; j < W; j++) {
-			if (Output[i * W + j] == 0) {
-				RDY = i;
-				flag = 1;
-				break;
-			}
-		}
-		if (flag == 1) break;
-	}
-
-	flag = 0;
-	for (int j = 0; j < W; j++) {
-		for (int i = 0; i < H; i++) {
-			if (Output[i * W + j] == 0) {
-				LUX = j;
-				flag = 1;
-				break;
-			}
-		}
-		if (flag == 1) break;
-	}
-
-	flag = 0;
-	for (int j = W-1; j >= 0; j--) {
-		for (int i = 0; i < H; i++) {
-			if (Output[i * W + j] == 0) {
-				RDX = j;
-				flag = 1;
-				break;
-			}
-		}
-		if (flag == 1) break;
-	}
-	printf("%d %d  %d %d\n", LUX, LUY, RDX, RDY);
+	Obtain2DCenter(Output, W, H, &Cx, &Cy); // 이진영상의 무게중심 구하기
+	Obtain2DBoundingBox(Output, W, H, &LUX, &LUY, &RDX, &RDY); // 이진영상의 외접직사각형 좌표 추출
+	
 	DrawCrossLine(Image, W, H, Cx, Cy);
 	DrawRectOutline(Image, W, H, LUX, LUY, RDX, RDY);
 
