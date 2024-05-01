@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Windows.h>
+#include <math.h>
 
 void InverseImage(BYTE* Img, BYTE* Out, int W, int H)
 {
@@ -617,6 +618,20 @@ void Scaling(BYTE* Image, BYTE* Output, int W, int H, double SF_X, double SF_Y) 
 	}
 }
 
+// Rotation
+void Rotation(BYTE* Image, BYTE* Output, int W, int H, int Angle) {
+	int tmpX, tmpY;
+	double Radian = Angle * 3.141592 / 180.0;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			tmpX = (int)(cos(Radian) * j + sin(Radian) * i);
+			tmpY = (int)(-sin(Radian) * j + cos(Radian) * i);
+			if ((tmpY < H && tmpY >= 0) && (tmpX < W && tmpX >= 0))
+				Output[i * W + j] = Image[tmpY * W + tmpX];
+		}
+	}
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
@@ -645,8 +660,8 @@ int main()
 	// VerticalFilp(Image, W, H);
 	// HorizontalFlip(Image, W, H);
 	// Translation(Image, Output, W, H, 100, 40);
-	Scaling(Image, Output, W, H, 2.0, 0.7);
-	
+	// Scaling(Image, Output, W, H, 2.0, 0.7);
+	Rotation(Image, Output, W, H, 60);
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
