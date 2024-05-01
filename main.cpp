@@ -575,10 +575,20 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
 	}
 }
 
+// VerticalFilp
 void VerticalFilp(BYTE* Img, int W, int H) {
 	for (int i = 0; i < H / 2; i++) {
 		for (int j = 0; j < W; j++) {
 			swap(&Img[i * W + j], &Img[(H - 1 - i) * W + j]);
+		}
+	}
+}
+
+// HorizontalFlip
+void HorizontalFlip(BYTE* Img, int W, int H) {
+	for (int i = 0; i < W / 2; i++) {
+		for (int j = 0; j < H; j++) {
+			swap(&Img[j * W + i], &Img[j * W + (W - 1 - i)]);
 		}
 	}
 }
@@ -610,7 +620,8 @@ int main()
 
 	// Translation
 	int Tx = 50, Ty = 30;
-	VerticalFilp(Image, W, H);
+	// VerticalFilp(Image, W, H);
+	HorizontalFlip(Image, W, H);
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
 			if((i+Ty < H && i+Ty>=0) && (j+Tx <W && j+Tx>=0))
