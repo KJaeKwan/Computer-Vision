@@ -631,7 +631,19 @@ int main()
 
 	// VerticalFilp(Image, W, H);
 	// HorizontalFlip(Image, W, H);
-	Translation(Image, Output, W, H, 100, 40);
+	// Translation(Image, Output, W, H, 100, 40);
+
+	//Scaling
+	double SF_X = 1.3, SF_Y = 1.5;
+	int tmpX, tmpY;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			tmpX = (int)(j * SF_X);
+			tmpY = (int)(i * SF_Y);
+			if (tmpY < H && tmpX < W)
+				Output[tmpY *W + tmpX] = Image[i*W +j];
+		}
+	}
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
