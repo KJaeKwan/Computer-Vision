@@ -483,7 +483,7 @@ void BinaryImageEdgeDetection(BYTE* Bin, BYTE* Out, int W, int H) {
 
 // Img: 사각형을 그릴 이미지배열, W: 영상 가로사이즈, H: 영상 세로사이즈,
 // LU_X: 사각형의 좌측상단 X좌표, LU_Y: 사각형의 좌측상단 Y좌표,
-// RD_X: 사각형의 우측하단 X좌표, LU_Y: 사각형의 우측하단 Y좌표.
+// RD_X: 사각형의 우측하단 X좌표, LU_   Y: 사각형의 우측하단 Y좌표.
 void DrawRectOutline(BYTE* Img, int W, int H, int LU_X, int LU_Y, int RD_X, int RD_Y) {
 	for (int i = LU_X; i < RD_X; i++) Img[LU_Y * W + i] = 255;
 	for (int i = LU_X; i < RD_X; i++) Img[RD_Y * W + i] = 255;
@@ -524,6 +524,7 @@ void Obtain2DCenter(BYTE* Image, int W, int H, int* Cx, int* Cy) {
 	//printf("%d %d\n", Cx, Cy);
 }
 
+// 외접 직사각형 구하는 함수
 void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX, int* RDY) {
 	int flag = 0;
 	for (int i = 0; i < H; i++) {
@@ -573,13 +574,22 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
 		if (flag == 1) break;
 	}
 }
+
+void VerticalFilp(BYTE* Img, int W, int H) {
+	for (int i = 0; i < H / 2; i++) {
+		for (int j = 0; j < W; j++) {
+			swap(&Img[i * W + j], &Img[(H - 1 - i) * W + j]);
+		}
+	}
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("pupil1.bmp", "rb");
+	fp = fopen("lenna.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -598,46 +608,17 @@ int main()
 	int Histo[256] = { 0 };
 	int AHisto[256] = { 0 };
 
-	/* ... */
+	// Translation
+	int Tx = 50, Ty = 30;
+	VerticalFilp(Image, W, H);
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if((i+Ty < H && i+Ty>=0) && (j+Tx <W && j+Tx>=0))
+				Output[(i+Ty)*W + (j+Tx)] = Image[i * W + j];
+		}
+	}
 
-	//GaussAvrConv(Image, Output, hInfo.biWidth, hInfo.biHeight);
-	
-	/* ... */
-
-	/* Median filtering */
-	//int Length = 5;  // 마스크의 한 변의 길이
-	//int Margin = Length / 2; // 마진 값 두기 (마스크의 길이가 커지면 당연히 커진다)
-	//int WSize = Length * Length;  // 마스크의 크기
-	//BYTE* temp = (BYTE*)malloc(sizeof(BYTE) * WSize); // 임시 변수에 마스크 크기만큼 동적할당
-	//int W = hInfo.biWidth, H = hInfo.biHeight; // W,H 선언 및 값 할당
-	//int i, j, m, n; // 반복문에 사용될 변수 선언
-	//for (i = Margin; i < H - Margin; i++) {
-	//	for (j = Margin; j < W - Margin; j++) { // i,j로 지정된 center값을 반복문으로 돌림
-	//		for (m = -Margin; m <= Margin; m++) { 
-	//			for (n = -Margin; n <= Margin; n++) { // m,n으로 마스크 크기의 가로, 세로만큼 반복문 돌림 
-	//				// temp 배열에 이미지 값(center를 중심으로 한 값들)을 넣음
-	//				temp[(m + Margin) * Length + (n + Margin)] = Image[(i + m) * W + j + n];
-	//			}
-	//		}
-	//		Output[i * W + j] = Median(temp, WSize); // center에 median값 넣기
-	//	}
-	//}
-	//free(temp); // 할당한 temp free처리
-	/* Median filtering */
-
-	Binarization(Image, Output, W, H, 30);
-	InverseImage(Output, Output, W, H);
-	m_BlobColoring(Output, H, W);
-	int Cx, Cy;
-	int LUX, LUY, RDX, RDY;
-	Obtain2DCenter(Output, W, H, &Cx, &Cy); // 이진영상의 무게중심 구하기
-	Obtain2DBoundingBox(Output, W, H, &LUX, &LUY, &RDX, &RDY); // 이진영상의 외접직사각형 좌표 추출
-	
-	DrawCrossLine(Image, W, H, Cx, Cy);
-	DrawRectOutline(Image, W, H, LUX, LUY, RDX, RDY);
-
-
-	SaveBMPFile(hf, hInfo, hRGB, Image, W, H, "output.bmp");
+	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
 
 	free(Image);
