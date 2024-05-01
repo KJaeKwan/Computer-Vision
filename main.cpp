@@ -604,6 +604,19 @@ void Translation(BYTE* Image, BYTE* Output, int W, int H, int Tx, int Ty) {
 	}
 }
 
+// Scaling
+void Scaling(BYTE* Image, BYTE* Output, int W, int H, double SF_X, double SF_Y) {
+	int tmpX, tmpY;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			tmpX = (int)(j / SF_X);
+			tmpY = (int)(i / SF_Y);
+			if (tmpY < H && tmpX < W)
+				Output[i * W + j] = Image[tmpY * W + tmpX];
+		}
+	}
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
@@ -632,18 +645,8 @@ int main()
 	// VerticalFilp(Image, W, H);
 	// HorizontalFlip(Image, W, H);
 	// Translation(Image, Output, W, H, 100, 40);
-
-	//Scaling
-	double SF_X = 1.3, SF_Y = 1.5;
-	int tmpX, tmpY;
-	for (int i = 0; i < H; i++) {
-		for (int j = 0; j < W; j++) {
-			tmpX = (int)(j / SF_X);
-			tmpY = (int)(i / SF_Y);
-			if (tmpY < H && tmpX < W)
-				Output[i * W + j] = Image[tmpY * W + tmpX];
-		}
-	}
+	Scaling(Image, Output, W, H, 2.0, 0.7);
+	
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
