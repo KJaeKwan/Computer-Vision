@@ -593,6 +593,17 @@ void HorizontalFlip(BYTE* Img, int W, int H) {
 	}
 }
 
+// Translation (이동)
+void Translation(BYTE* Image, BYTE* Output, int W, int H, int Tx, int Ty) {
+	Ty *= -1;
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if ((i + Ty < H && i + Ty >= 0) && (j + Tx < W && j + Tx >= 0))
+				Output[(i + Ty) * W + (j + Tx)] = Image[i * W + j];
+		}
+	}
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
@@ -618,16 +629,9 @@ int main()
 	int Histo[256] = { 0 };
 	int AHisto[256] = { 0 };
 
-	// Translation
-	int Tx = 50, Ty = 30;
 	// VerticalFilp(Image, W, H);
-	HorizontalFlip(Image, W, H);
-	for (int i = 0; i < H; i++) {
-		for (int j = 0; j < W; j++) {
-			if((i+Ty < H && i+Ty>=0) && (j+Tx <W && j+Tx>=0))
-				Output[(i+Ty)*W + (j+Tx)] = Image[i * W + j];
-		}
-	}
+	// HorizontalFlip(Image, W, H);
+	Translation(Image, Output, W, H, 100, 40);
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
