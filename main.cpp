@@ -638,10 +638,10 @@ int main()
 	int tmpX, tmpY;
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
-			tmpX = (int)(j * SF_X);
-			tmpY = (int)(i * SF_Y);
+			tmpX = (int)(j / SF_X);
+			tmpY = (int)(i / SF_Y);
 			if (tmpY < H && tmpX < W)
-				Output[tmpY *W + tmpX] = Image[i*W +j];
+				Output[i * W + j] = Image[tmpY * W + tmpX];
 		}
 	}
 
