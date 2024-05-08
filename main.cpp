@@ -681,7 +681,33 @@ int main()
 	int Histo[256] = { 0 };
 	int AHisto[256] = { 0 };
 
-	FillColor(Image, 100, 200, W, H, 0, 255, 255);
+	// FillColor(Image, 100, 200, W, H, 0, 255, 255);
+
+	// 가로 띠 만들기
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			Image[i * W * 3 + j * 3] = 0;
+			Image[i * W * 3 + j * 3 + 1] = 0;
+			Image[i * W * 3 + j * 3 + 2] = 0;
+		}
+	}
+	for (int i = 0; i < 240; i++) {
+		for (int j = 0; j < W; j++) {
+			Image[i * W * 3 + j * 3 + 2] = 255; //Red
+		}
+	}
+	for (int i = 120; i < 360; i++) {
+		for (int j = 0; j < W; j++) {
+			Image[i * W * 3 + j * 3 + 1] = 255; //Green
+		}
+	}
+	for (int i = 240; i < 480; i++) {
+		for (int j = 0; j < W; j++) {
+			Image[i * W * 3 + j * 3] = 255; //Blue
+		}
+	}
+
+
 	// VerticalFilp(Image, W, H);
 	// HorizontalFlip(Image, W, H);
 	// Translation(Image, Output, W, H, 100, 40);
