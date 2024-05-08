@@ -317,10 +317,17 @@ void SaveBMPFile(BITMAPFILEHEADER hf, BITMAPINFOHEADER hInfo,
 	RGBQUAD* hRGB, BYTE* Output, int W, int H, const char* FileName)
 {
 	FILE* fp = fopen(FileName, "wb");
-	fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
-	fwrite(&hInfo, sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
-	fwrite(hRGB, sizeof(RGBQUAD), 256, fp);
-	fwrite(Output, sizeof(BYTE), W * H, fp);
+	if (hInfo.biBitCount == 24) {
+		fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
+		fwrite(&hInfo, sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
+		fwrite(Output, sizeof(BYTE), W * H * 3, fp);
+	}
+	else {
+		fwrite(&hf, sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
+		fwrite(&hInfo, sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
+		fwrite(hRGB, sizeof(RGBQUAD), 256, fp);
+		fwrite(Output, sizeof(BYTE), W * H, fp);
+	}
 	fclose(fp);
 }
 
@@ -638,36 +645,50 @@ int main()
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("lenna.bmp", "rb");
+	fp = fopen("tcsample.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
 	}
 	fread(&hf, sizeof(BITMAPFILEHEADER), 1, fp);
 	fread(&hInfo, sizeof(BITMAPINFOHEADER), 1, fp);
-	fread(hRGB, sizeof(RGBQUAD), 256, fp);
 	int ImgSize = hInfo.biWidth * hInfo.biHeight;
-	BYTE* Image = (BYTE*)malloc(ImgSize);
-	BYTE* Temp = (BYTE*)malloc(ImgSize); 
-	BYTE* Output = (BYTE*)malloc(ImgSize);
-	fread(Image, sizeof(BYTE), ImgSize, fp);
+	int H = hInfo.biHeight, W = hInfo.biWidth;
+
+	BYTE* Image;
+	BYTE* Output;
+	if (hInfo.biBitCount == 24) { //트루컬러 
+		Image = (BYTE*)malloc(ImgSize * 3);
+		Output = (BYTE*)malloc(ImgSize * 3);
+		fread(Image, sizeof(BYTE), ImgSize * 3, fp);
+
+	}
+	else { //인덱스(그레이)
+		fread(hRGB, sizeof(RGBQUAD), 256, fp);
+		Image = (BYTE*)malloc(ImgSize);
+		Output = (BYTE*)malloc(ImgSize);
+		fread(Image, sizeof(BYTE), ImgSize, fp);
+	}
 	fclose(fp);
 
-	int H = hInfo.biHeight, W = hInfo.biWidth;
 	int Histo[256] = { 0 };
 	int AHisto[256] = { 0 };
+
+	// (50,40)위치를 특정 색상으로
+	Image[40 * W * 3 + 50 * 3] = 0; //Blue 성분
+	Image[40 * W * 3 + 50 * 3 + 1] = 0; //Green 성분
+	Image[40 * W * 3 + 50 * 3 + 2] = 255; //Red 성분
 
 	// VerticalFilp(Image, W, H);
 	// HorizontalFlip(Image, W, H);
 	// Translation(Image, Output, W, H, 100, 40);
 	// Scaling(Image, Output, W, H, 2.0, 0.7);
-	Rotation(Image, Output, W, H, 60);
+	// Rotation(Image, Output, W, H, 60);
 
-	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
+	SaveBMPFile(hf, hInfo, hRGB, Image, W, H, "output.bmp");
 
 
 	free(Image);
 	free(Output);
-	free(Temp);
 	return 0;
 }
