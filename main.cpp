@@ -639,6 +639,13 @@ void Rotation(BYTE* Image, BYTE* Output, int W, int H, int Angle) {
 	}
 }
 
+// 1픽셀 점찍는 함수
+void FillColor(BYTE* Image, int X, int Y, int W, int H, BYTE R, BYTE G, BYTE B) {
+	Image[Y * W * 3 + X * 3] = B; //Blue 성분
+	Image[Y * W * 3 + X * 3 + 1] = G; //Green 성분
+	Image[Y * W * 3 + X * 3 + 2] = R; //Red 성분
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
@@ -674,11 +681,7 @@ int main()
 	int Histo[256] = { 0 };
 	int AHisto[256] = { 0 };
 
-	// (50,40)위치를 특정 색상으로
-	Image[40 * W * 3 + 50 * 3] = 0; //Blue 성분
-	Image[40 * W * 3 + 50 * 3 + 1] = 0; //Green 성분
-	Image[40 * W * 3 + 50 * 3 + 2] = 255; //Red 성분
-
+	FillColor(Image, 100, 200, W, H, 0, 255, 255);
 	// VerticalFilp(Image, W, H);
 	// HorizontalFlip(Image, W, H);
 	// Translation(Image, Output, W, H, 100, 40);
