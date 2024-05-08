@@ -682,7 +682,7 @@ int main()
 	int AHisto[256] = { 0 };
 
 	// FillColor(Image, 100, 200, W, H, 0, 255, 255);
-
+	/*
 	// 가로 띠 만들기
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
@@ -706,7 +706,17 @@ int main()
 			Image[i * W * 3 + j * 3] = 255; //Blue
 		}
 	}
-
+	*/
+	// 그라데이션 만들기
+	double wt;
+	for (int a = 0; a < 120; a++) {
+		for (int i = 0; i < W; i++) {
+			wt = i / (double)(W - 1);
+			Image[a * W * 3 + i * 3] = (BYTE)(255 * (1.0 - wt));
+			Image[a * W * 3 + i * 3 + 1] = 0;
+			Image[a * W * 3 + i * 3 + 2] = (BYTE)(255 * (wt));
+		}
+	}
 
 	// VerticalFilp(Image, W, H);
 	// HorizontalFlip(Image, W, H);
