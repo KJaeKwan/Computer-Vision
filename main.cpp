@@ -682,7 +682,6 @@ int main()
 	int AHisto[256] = { 0 };
 
 	// FillColor(Image, 100, 200, W, H, 0, 255, 255);
-	/*
 	// 가로 띠 만들기
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
@@ -691,23 +690,34 @@ int main()
 			Image[i * W * 3 + j * 3 + 2] = 0;
 		}
 	}
-	for (int i = 0; i < 240; i++) {
+	double wt;
+	for (int i = 0; i < 160; i++) {
 		for (int j = 0; j < W; j++) {
-			Image[i * W * 3 + j * 3 + 2] = 255; //Red
+			wt = j / (double)(W - 1);
+			Image[i * W * 3 + j * 3] = (BYTE)(255 * (1.0 - wt)); //Blue
+			Image[i * W * 3 + j * 3 + 1] = (BYTE)255 * wt; //Green
+			Image[i * W * 3 + j * 3 + 2] = (BYTE)255 * wt; //Red
 		}
 	}
-	for (int i = 120; i < 360; i++) {
+	for (int i = 160; i < 320; i++) {
 		for (int j = 0; j < W; j++) {
-			Image[i * W * 3 + j * 3 + 1] = 255; //Green
+			wt = j / (double)(W - 1);
+			Image[i * W * 3 + j * 3 + 1] = (BYTE)(255 * (1.0 - wt)); //Green
+			Image[i * W * 3 + j * 3 + 2] = (BYTE)255 * wt; //Red
+			Image[i * W * 3 + j * 3] = (BYTE)255 * wt; //Blue
 		}
 	}
-	for (int i = 240; i < 480; i++) {
+	for (int i = 320; i < 480; i++) {
 		for (int j = 0; j < W; j++) {
-			Image[i * W * 3 + j * 3] = 255; //Blue
+			wt = j / (double)(W - 1);
+			Image[i * W * 3 + j * 3 + 2] = (BYTE)(255 * (1.0 - wt)); //Red
+			Image[i * W * 3 + j * 3 + 1] = (BYTE)255 * wt; //Green
+			Image[i * W * 3 + j * 3] = (BYTE)255 * wt; //Blue
 		}
 	}
-	*/
+
 	// 그라데이션 만들기
+	/*
 	double wt;
 	for (int a = 0; a < 120; a++) {
 		for (int i = 0; i < W; i++) {
@@ -717,6 +727,7 @@ int main()
 			Image[a * W * 3 + i * 3 + 2] = (BYTE)(255 * (wt));
 		}
 	}
+	*/
 
 	// VerticalFilp(Image, W, H);
 	// HorizontalFlip(Image, W, H);
