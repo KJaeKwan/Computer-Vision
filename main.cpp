@@ -648,14 +648,16 @@ void FillColor(BYTE* Image, int X, int Y, int W, int H, BYTE R, BYTE G, BYTE B) 
 
 // RGB를 YCbCr로 변환
 void RGB2YCbCr(BYTE* Image, BYTE* Y, BYTE* Cb, BYTE* Cr, int W, int H) {
-	for (int i = 0; i < H; i++) {
-		for (int j = 0; i < W; j++) {
-			Y[i * W + j] = (BYTE)(0.299 * Image[i * W * 3 + j * 3 + 2] + 0.587 * Image[i * W * 3 + j * 3 + 1] + 0.114 * Image[i * W * 3 + j * 3]);
-			Cb[i * W + j] = (BYTE)(-0.16874 * Image[i * W * 3 + j * 3 + 2] - 0.3313 * Image[i * W * 3 + j * 3 + 1] + 0.5 * Image[i * W * 3 + j * 3] + 128);
-			Cr[i * W + j] = (BYTE)(0.5 * Image[i * W * 3 + j * 3 + 2] - 0.4187 * Image[i * W * 3 + j * 3 + 1] - 0.0813 * Image[i * W * 3 + j * 3] + 128);
-		}
-	}
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < W; j++) {
+            int index = i * W * 3 + j * 3;
+            Y[i * W + j] = (BYTE)(0.299 * Image[index + 2] + 0.587 * Image[index + 1] + 0.114 * Image[index]);
+            Cb[i * W + j] = (BYTE)(-0.16874 * Image[index + 2] - 0.3313 * Image[index + 1] + 0.5 * Image[index] + 128);
+            Cr[i * W + j] = (BYTE)(0.5 * Image[index + 2] - 0.4187 * Image[index + 1] - 0.0813 * Image[index] + 128);
+        }
+    }
 }
+
 
 int main()
 {
@@ -759,6 +761,25 @@ int main()
 	BYTE* Y = (BYTE*)malloc(ImgSize);
 	BYTE* Cb = (BYTE*)malloc(ImgSize);
 	BYTE* Cr = (BYTE*)malloc(ImgSize);
+
+	RGB2YCbCr(Image, Y, Cb, Cr, W, H);
+
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (Cb[i * W + j] < 140 && Cr[i * W + j]>210) {
+				Output[i * W * 3 + j * 3] = Image[i * W * 3 + j * 3];
+				Output[i * W * 3 + j * 3 + 1] = Image[i * W * 3 + j * 3 + 1];
+				Output[i * W * 3 + j * 3 + 2] = Image[i * W * 3 + j * 3 + 2];
+			}
+			else {
+				Output[i * W * 3 + j * 3] = Output[i * W * 3 + j * 3 + 1] = Output[i * W * 3 + j * 3 + 2] = 0;
+			}
+		}
+	}
+
+	free(Y);
+	free(Cb);
+	free(Cr);
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
