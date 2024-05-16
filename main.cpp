@@ -646,13 +646,24 @@ void FillColor(BYTE* Image, int X, int Y, int W, int H, BYTE R, BYTE G, BYTE B) 
 	Image[Y * W * 3 + X * 3 + 2] = R; //Red 성분
 }
 
+// RGB를 YCbCr로 변환
+void RGB2YCbCr(BYTE* Image, BYTE* Y, BYTE* Cb, BYTE* Cr, int W, int H) {
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; i < W; j++) {
+			Y[i * W + j] = (BYTE)(0.299 * Image[i * W * 3 + j * 3 + 2] + 0.587 * Image[i * W * 3 + j * 3 + 1] + 0.114 * Image[i * W * 3 + j * 3]);
+			Cb[i * W + j] = (BYTE)(-0.16874 * Image[i * W * 3 + j * 3 + 2] - 0.3313 * Image[i * W * 3 + j * 3 + 1] + 0.5 * Image[i * W * 3 + j * 3] + 128);
+			Cr[i * W + j] = (BYTE)(0.5 * Image[i * W * 3 + j * 3 + 2] - 0.4187 * Image[i * W * 3 + j * 3 + 1] - 0.0813 * Image[i * W * 3 + j * 3] + 128);
+		}
+	}
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("tcsample.bmp", "rb");
+	fp = fopen("fruit.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -682,7 +693,8 @@ int main()
 	int AHisto[256] = { 0 };
 
 	// FillColor(Image, 100, 200, W, H, 0, 255, 255);
-	// 가로 띠 만들기
+	// 그라데이션 가로 띠 만들기
+	/*
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
 			Image[i * W * 3 + j * 3] = 0;
@@ -715,7 +727,7 @@ int main()
 			Image[i * W * 3 + j * 3] = (BYTE)255 * wt; //Blue
 		}
 	}
-
+	*/
 	// 그라데이션 만들기
 	/*
 	double wt;
@@ -729,13 +741,27 @@ int main()
 	}
 	*/
 
-	// VerticalFilp(Image, W, H);
-	// HorizontalFlip(Image, W, H);
-	// Translation(Image, Output, W, H, 100, 40);
-	// Scaling(Image, Output, W, H, 2.0, 0.7);
-	// Rotation(Image, Output, W, H, 60);
+	 // Red값이 큰 화소만 masking (R, G, B 모델 기준)
+	/*for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			if (Image[i * W * 3 + j * 3 + 2] > 130 &&
+				Image[i * W * 3 + j * 3 + 1] < 50 &&
+				Image[i * W * 3 + j * 3 + 1] < 100 ) {
+				Output[i * W * 3 + j * 3] = Image[i * W * 3 + j * 3];
+				Output[i * W * 3 + j * 3 + 1] = Image[i * W * 3 + j * 3 + 1];
+				Output[i * W * 3 + j * 3 + 2] = Image[i * W * 3 + j * 3 + 2];
+			}
+			else
+				Output[i * W * 3 + j * 3] = Output[i * W * 3 + j * 3 + 1] = Output[i * W * 3 + j * 3 + 2] = 0;
+		}
+	}*/
 
-	SaveBMPFile(hf, hInfo, hRGB, Image, W, H, "output.bmp");
+	BYTE* Y = (BYTE*)malloc(ImgSize);
+	BYTE* Cb = (BYTE*)malloc(ImgSize);
+	BYTE* Cr = (BYTE*)malloc(ImgSize);
+
+	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
+
 
 
 	free(Image);
