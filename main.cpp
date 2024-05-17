@@ -493,10 +493,10 @@ void BinaryImageEdgeDetection(BYTE* Bin, BYTE* Out, int W, int H) {
 // LU_X: 사각형의 좌측상단 X좌표, LU_Y: 사각형의 좌측상단 Y좌표,
 // RD_X: 사각형의 우측하단 X좌표, LU_   Y: 사각형의 우측하단 Y좌표.
 void DrawRectOutline(BYTE* Img, int W, int H, int LU_X, int LU_Y, int RD_X, int RD_Y) {
-	for (int i = LU_X; i < RD_X; i++) Img[LU_Y * W + i] = 255;
-	for (int i = LU_X; i < RD_X; i++) Img[RD_Y * W + i] = 255;
-	for (int i = LU_Y; i < RD_Y; i++) Img[i * W + LU_X] = 255;
-	for (int i = LU_Y; i < RD_Y; i++) Img[i * W + RD_X] = 255;
+	for (int i = LU_X; i < RD_X; i++) Img[LU_Y * W * 3 + i * 3 + 2] = 255;
+	for (int i = LU_X; i < RD_X; i++) Img[RD_Y * W * 3 + i * 3 + 2] = 255;
+	for (int i = LU_Y; i < RD_Y; i++) Img[i * W * 3 + LU_X * 3 + 2] = 255;
+	for (int i = LU_Y; i < RD_Y; i++) Img[i * W * 3 + RD_X * 3 + 2] = 255;
 	
 }
 
@@ -537,7 +537,7 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
 	int flag = 0;
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
-			if (Image[i * W + j] == 0) {
+			if ((Image[i * W * 3 + j * 3] != 0) || (Image[i * W * 3 + j * 3 + 1] != 0) || (Image[i * W * 3 + j * 3 + 2] != 0)) {
 				*LUY = i;
 				flag = 1;
 				break;
@@ -548,8 +548,8 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
 
 	flag = 0;
 	for (int i = H - 1; i >= 0; i--) {
-		for (int j = 0; j < W; j++) {
-			if (Image[i * W + j] == 0) {
+		for (int j = W - 1; j >= 0; j--) {
+			if ((Image[i * W * 3 + j * 3] != 0) || (Image[i * W * 3 + j * 3 + 1] != 0) || (Image[i * W * 3 + j * 3 + 2] != 0)) {
 				*RDY = i;
 				flag = 1;
 				break;
@@ -561,7 +561,7 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
 	flag = 0;
 	for (int j = 0; j < W; j++) {
 		for (int i = 0; i < H; i++) {
-			if (Image[i * W + j] == 0) {
+			if ((Image[i * W * 3 + j * 3] != 0) || (Image[i * W * 3 + j * 3 + 1] != 0) || (Image[i * W * 3 + j * 3 + 2] != 0)) {
 				*LUX = j;
 				flag = 1;
 				break;
@@ -572,8 +572,8 @@ void Obtain2DBoundingBox(BYTE* Image, int W, int H, int* LUX, int* LUY, int* RDX
 
 	flag = 0;
 	for (int j = W - 1; j >= 0; j--) {
-		for (int i = 0; i < H; i++) {
-			if (Image[i * W + j] == 0) {
+		for (int i = H - 1; i >= 0; i--) {
+			if ((Image[i * W * 3 + j * 3] != 0) || (Image[i * W * 3 + j * 3 + 1] != 0) || (Image[i * W * 3 + j * 3 + 2] != 0)) {
 				*RDX = j;
 				flag = 1;
 				break;
@@ -658,14 +658,13 @@ void RGB2YCbCr(BYTE* Image, BYTE* Y, BYTE* Cb, BYTE* Cr, int W, int H) {
     }
 }
 
-
 int main()
 {
 	BITMAPFILEHEADER hf; 
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("fruit.bmp", "rb");
+	fp = fopen("face.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -766,7 +765,10 @@ int main()
 
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
-			if (Cb[i * W + j] < 140 && Cr[i * W + j]>210) {
+			if (Cb[i * W + j] > 85 && 
+				Cb[i * W + j] < 135 && 
+				Cr[i * W + j] > 135 &&
+				Cr[i * W + j] < 185) {
 				Output[i * W * 3 + j * 3] = Image[i * W * 3 + j * 3];
 				Output[i * W * 3 + j * 3 + 1] = Image[i * W * 3 + j * 3 + 1];
 				Output[i * W * 3 + j * 3 + 2] = Image[i * W * 3 + j * 3 + 2];
@@ -777,9 +779,20 @@ int main()
 		}
 	}
 
+	//이진화
+	//Binarization(Output, Output, hInfo.biWidth, hInfo.biHeight, 150);
+
+	// 외접 직사각형 그리기
+	int LUX, LUY, RDX, RDY;
+	Obtain2DBoundingBox(Output, W, H, &LUX, &LUY, &RDX, &RDY);
+	printf("%d %d %d %d\n", LUX, LUY, RDX, RDY);
+	DrawRectOutline(Output, W, H, LUX, LUY, RDX, RDY);
+
 	free(Y);
 	free(Cb);
 	free(Cr);
+
+
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
