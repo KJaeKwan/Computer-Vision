@@ -4,6 +4,126 @@
 #include <Windows.h>
 #include <math.h>
 
+// 2차원 배열 동적할당 위함
+unsigned char** imageMatrix;
+// 이진영상에서
+unsigned char blankPixel = 255, imagePixel = 0;
+
+typedef struct {
+	int row, col;
+}pixel;
+
+int getBlackNeighbours(int row, int col) {
+
+	int i, j, sum = 0;
+
+	for (i = -1; i <= 1; i++) {
+		for (j = -1; j <= 1; j++) {
+			if (i != 0 || j != 0)
+				sum += (imageMatrix[row + i][col + j] == imagePixel);
+		}
+	}
+
+	return sum;
+}
+
+int getBWTransitions(int row, int col) {
+	return 	((imageMatrix[row - 1][col] == blankPixel && imageMatrix[row - 1][col + 1] == imagePixel)
+		+ (imageMatrix[row - 1][col + 1] == blankPixel && imageMatrix[row][col + 1] == imagePixel)
+		+ (imageMatrix[row][col + 1] == blankPixel && imageMatrix[row + 1][col + 1] == imagePixel)
+		+ (imageMatrix[row + 1][col + 1] == blankPixel && imageMatrix[row + 1][col] == imagePixel)
+		+ (imageMatrix[row + 1][col] == blankPixel && imageMatrix[row + 1][col - 1] == imagePixel)
+		+ (imageMatrix[row + 1][col - 1] == blankPixel && imageMatrix[row][col - 1] == imagePixel)
+		+ (imageMatrix[row][col - 1] == blankPixel && imageMatrix[row - 1][col - 1] == imagePixel)
+		+ (imageMatrix[row - 1][col - 1] == blankPixel && imageMatrix[row - 1][col] == imagePixel));
+}
+
+// Thining
+int zhangSuenTest1(int row, int col) {
+	int neighbours = getBlackNeighbours(row, col);
+
+	return ((neighbours >= 2 && neighbours <= 6)
+		&& (getBWTransitions(row, col) == 1)
+		&& (imageMatrix[row - 1][col] == blankPixel || imageMatrix[row][col + 1] == blankPixel || imageMatrix[row + 1][col] == blankPixel)
+		&& (imageMatrix[row][col + 1] == blankPixel || imageMatrix[row + 1][col] == blankPixel || imageMatrix[row][col - 1] == blankPixel));
+}
+
+int zhangSuenTest2(int row, int col) {
+	int neighbours = getBlackNeighbours(row, col);
+
+	return ((neighbours >= 2 && neighbours <= 6)
+		&& (getBWTransitions(row, col) == 1)
+		&& (imageMatrix[row - 1][col] == blankPixel || imageMatrix[row][col + 1] == blankPixel || imageMatrix[row][col - 1] == blankPixel)
+		&& (imageMatrix[row - 1][col] == blankPixel || imageMatrix[row + 1][col] == blankPixel || imageMatrix[row][col + 1] == blankPixel));
+}
+
+void zhangSuen(unsigned char* image, unsigned char* output, int rows, int cols) {
+
+	int startRow = 1, startCol = 1, endRow, endCol, i, j, count, processed;
+
+	pixel* markers;
+
+	imageMatrix = (unsigned char**)malloc(rows * sizeof(unsigned char*));
+
+	for (i = 0; i < rows; i++) {
+		imageMatrix[i] = (unsigned char*)malloc((cols + 1) * sizeof(unsigned char));
+		for (int k = 0; k < cols; k++) imageMatrix[i][k] = image[i * cols + k];
+	}
+
+	endRow = rows - 2;
+	endCol = cols - 2;
+	do {
+		markers = (pixel*)malloc((endRow - startRow + 1) * (endCol - startCol + 1) * sizeof(pixel));
+		count = 0;
+
+		for (i = startRow; i <= endRow; i++) {
+			for (j = startCol; j <= endCol; j++) {
+				if (imageMatrix[i][j] == imagePixel && zhangSuenTest1(i, j) == 1) {
+					markers[count].row = i;
+					markers[count].col = j;
+					count++;
+				}
+			}
+		}
+
+		processed = (count > 0);
+
+		for (i = 0; i < count; i++) {
+			imageMatrix[markers[i].row][markers[i].col] = blankPixel;
+		}
+
+		free(markers);
+		markers = (pixel*)malloc((endRow - startRow + 1) * (endCol - startCol + 1) * sizeof(pixel));
+		count = 0;
+
+		for (i = startRow; i <= endRow; i++) {
+			for (j = startCol; j <= endCol; j++) {
+				if (imageMatrix[i][j] == imagePixel && zhangSuenTest2(i, j) == 1) {
+					markers[count].row = i;
+					markers[count].col = j;
+					count++;
+				}
+			}
+		}
+
+		if (processed == 0)
+			processed = (count > 0);
+
+		for (i = 0; i < count; i++) {
+			imageMatrix[markers[i].row][markers[i].col] = blankPixel;
+		}
+
+		free(markers);
+	} while (processed == 1);
+
+
+	for (i = 0; i < rows; i++) {
+		for (j = 0; j < cols; j++) {
+			output[i * cols + j] = imageMatrix[i][j];
+		}
+	}
+}
+
 void InverseImage(BYTE* Img, BYTE* Out, int W, int H)
 {
 	int ImgSize = W * H;
@@ -835,6 +955,8 @@ int main()
 	Erosion(Output, Image, W, H);
 	Erosion(Image, Output, W, H);
 	Erosion(Output, Image, W, H);
+	InverseImage(Image, Image, W, H);
+	zhangSuen(Image, Output, H, W);
 
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
