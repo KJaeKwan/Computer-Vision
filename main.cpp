@@ -816,6 +816,34 @@ void Dilation(BYTE* Image, BYTE* Output, int W, int H) {
 	}
 }
 
+// Thinging된 이미지에서 분기점, 끝점 표시 함수
+void FeatureExtractThinImage(BYTE* Image, BYTE* Output, int W, int H) {
+	int count = 0;
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) {
+			if (Image[i * W + j] == 0) {
+				for (int m = -1; m <= 1; m++) {
+					for (int n = -1; n <= 1; n++) {
+						if (Image[(i + m) * W + (j + n)] == 0)
+							count++;
+					}
+				}
+
+				if ((count == 2) || (count >= 4))
+				{
+					Output[i * W + j] = 255;
+					Output[(i - 1) * W + j] = 128;
+					Output[(i + 1) * W + j] = 128;
+					Output[i * W + j - 1] = 128;
+					Output[i * W + j + 1] = 128;
+				}
+				count = 0;
+			}
+		}
+	}
+}
+
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
@@ -834,6 +862,8 @@ int main()
 
 	BYTE* Image;
 	BYTE* Output;
+	BYTE* Temp = (BYTE*)malloc(ImgSize);
+
 	if (hInfo.biBitCount == 24) { //트루컬러 
 		Image = (BYTE*)malloc(ImgSize * 3);
 		Output = (BYTE*)malloc(ImgSize * 3);
@@ -956,12 +986,21 @@ int main()
 	Erosion(Image, Output, W, H);
 	Erosion(Output, Image, W, H);
 	InverseImage(Image, Image, W, H);
-	zhangSuen(Image, Output, H, W);
+	zhangSuen(Image, Temp, H, W);
+
+	for (int i = 0; i < H; i++) {
+		for (int j = 0; j < W; j++) {
+			Output[i * W + j] = Temp[i * W + j];
+		}
+
+	}
+	FeatureExtractThinImage(Temp, Output, H, W);
 
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
 	free(Image);
 	free(Output);
+	free(Temp);
 	return 0;
 }
