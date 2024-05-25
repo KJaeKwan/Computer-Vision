@@ -658,7 +658,7 @@ void RGB2YCbCr(BYTE* Image, BYTE* Y, BYTE* Cb, BYTE* Cr, int W, int H) {
     }
 }
 
-// 축소
+// 침식
 void Erosion(BYTE* Image, BYTE* Output, int W, int H) {
 	for (int i = 1; i < H - 1; i++) {
 		for (int j = 1; j < W - 1; j++) {
@@ -677,13 +677,32 @@ void Erosion(BYTE* Image, BYTE* Output, int W, int H) {
 	}
 }
 
+// 팽창
+void Dilation(BYTE* Image, BYTE* Output, int W, int H) {
+	for (int i = 1; i < H - 1; i++) {
+		for (int j = 1; j < W - 1; j++) {
+			if (Image[i * W + j] == 0) // 배경화소라면
+			{
+				if (!(Image[(i - 1) * W + j] == 0 &&
+					Image[(i + 1) * W + j] == 0 &&
+					Image[i * W + (j + 1)] == 0 &&
+					Image[i * W + (j - 1)] == 0)) { // 4주변화소가 모두 배경화소가 아니라면
+					Output[i * W + j] == 255;
+				}
+				else Output[i * W + j] = 0;
+			}
+			else Output[i * W + j] = 255;
+		}
+	}
+}
+
 int main()
 {
 	BITMAPFILEHEADER hf; 
 	BITMAPINFOHEADER hInfo; 
 	RGBQUAD hRGB[256];
 	FILE* fp;
-	fp = fopen("erosion.bmp", "rb");
+	fp = fopen("dilation.bmp", "rb");
 	if (fp == NULL) {
 		printf("File not found!\n");
 		return -1;
@@ -810,13 +829,13 @@ int main()
 	free(Cr);
 	*/
 
-	Erosion(Image, Output, W, H);
+	Dilation(Image, Output, W, H);
+	Dilation(Output, Image, W, H);
+	Dilation(Image, Output, W, H);
 	Erosion(Output, Image, W, H);
 	Erosion(Image, Output, W, H);
 	Erosion(Output, Image, W, H);
-	Erosion(Image, Output, W, H);
-	Erosion(Output, Image, W, H);
-	Erosion(Image, Output, W, H);
+
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
 
