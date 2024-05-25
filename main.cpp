@@ -786,9 +786,9 @@ void Erosion(BYTE* Image, BYTE* Output, int W, int H) {
 			{
 				if (!(Image[(i - 1) * W + j] == 255 &&
 					Image[(i + 1) * W + j] == 255 &&
-					Image[i * W + (j + 1)] == 255 &&
-					Image[i * W + (j - 1)] == 255)) { // 4주변화소가 모두 전경화소가 아니라면
-					Output[i * W + j] == 0;
+					Image[i * W + (j - 1)] == 255 &&
+					Image[i * W + (j + 1)] == 255)) { // 4주변화소가 모두 전경화소가 아니라면
+					Output[i * W + j] = 0;
 				}
 				else Output[i * W + j] = 255;
 			}
@@ -807,7 +807,7 @@ void Dilation(BYTE* Image, BYTE* Output, int W, int H) {
 					Image[(i + 1) * W + j] == 0 &&
 					Image[i * W + (j + 1)] == 0 &&
 					Image[i * W + (j - 1)] == 0)) { // 4주변화소가 모두 배경화소가 아니라면
-					Output[i * W + j] == 255;
+					Output[i * W + j] = 255;
 				}
 				else Output[i * W + j] = 0;
 			}
