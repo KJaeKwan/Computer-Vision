@@ -741,7 +741,6 @@ int main()
 		}
 	}
 	*/
-
 	 // Red값이 큰 화소만 masking (R, G, B 모델 기준)
 	/*for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
@@ -756,13 +755,13 @@ int main()
 				Output[i * W * 3 + j * 3] = Output[i * W * 3 + j * 3 + 1] = Output[i * W * 3 + j * 3 + 2] = 0;
 		}
 	}*/
-
+	/*
 	BYTE* Y = (BYTE*)malloc(ImgSize);
 	BYTE* Cb = (BYTE*)malloc(ImgSize);
 	BYTE* Cr = (BYTE*)malloc(ImgSize);
-
 	RGB2YCbCr(Image, Y, Cb, Cr, W, H);
-
+	*/
+	/*
 	for (int i = 0; i < H; i++) {
 		for (int j = 0; j < W; j++) {
 			if (Cb[i * W + j] > 85 && 
@@ -778,25 +777,21 @@ int main()
 			}
 		}
 	}
-
-	//이진화
-	//Binarization(Output, Output, hInfo.biWidth, hInfo.biHeight, 150);
-
+	*/
+	/*
 	// 외접 직사각형 그리기
 	int LUX, LUY, RDX, RDY;
 	Obtain2DBoundingBox(Output, W, H, &LUX, &LUY, &RDX, &RDY);
 	printf("%d %d %d %d\n", LUX, LUY, RDX, RDY);
 	DrawRectOutline(Output, W, H, LUX, LUY, RDX, RDY);
-
+	*/
+	/*
 	free(Y);
 	free(Cb);
 	free(Cr);
-
-
+	*/
 
 	SaveBMPFile(hf, hInfo, hRGB, Output, W, H, "output.bmp");
-
-
 
 	free(Image);
 	free(Output);
